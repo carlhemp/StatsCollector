@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+    <meta charset="utf-8"/>
+    <meta name="Description" content="Stats Collector">
+    <meta name="theme-color" content="#FFCF07">
+    <meta name="msapplication-TileColor" content="#FFCF07">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="mask-icon" href="safari-pinned-tab.svg" color="#FFCF07">
+
+    <link rel="stylesheet" href="style.css" >
+
+  	<script src="jquery-3.4.0.min.js"></script>
+  	<script src="lib.js"></script>
+
+    <title>Stats Collector</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	</head>
+	<body id="projector">
+
+		<div id="onboarding" class="screen last-el-bottom">
+			<h1>Welcome! </h1>
+			
+			<form class="last-el-bottom" id="onboard-form">
+        <div class="movementInfo">
+					<p>Select the movements below that you would like to add stats for OR click <a href="#onboarding">here</a> to login.  </p>
+
+					<h2>Movements</h2>
+
+					<div id="movements">
+					</div>
+				<br>
+				<br>
+				<small><b>Associate with my account</b></small>
+				</div>
+				<div class="loginInfo">
+					<small><b>If you have previously registered, go ahead and enter your phone number!</b> <br><br> If you haven't yet registered, you'll need to open the custom link that was sent to you.</small>
+				</div>
+	  		<input id="regUserPhone" name="regUserPhone" type="tel" required placeholder="Phone Number">
+	  		<div class="movementInfo">
+		  		<input name="register" id="register" type="checkbox" onchange="toggleRegister();">
+		  		<label for="register">Register as new user</label>
+					<input id="regUserName" name="regUserName" type="text" placeholder="First and Last Name" style="width: 100%; display: none;">
+				</div>
+				<div>
+					<input id="ua" name="ua" required type="checkbox" >
+					<label for="ua" >I agree to the <a href="https://www.cru.org/us/en/about/terms-of-use.html" target="_blank">Cru User Agreement</a></label>
+				</div>
+				<div>
+	      	<span class="bottom-button">
+						<button id="formSubmit"><span style="display:none">Register and </span>Setup Device</button>
+					</span>
+					<span class="questions">
+						Questions or Bugs? Email 
+						<a href="mailto: carl.hempel@cru.org">carl.hempel@cru.org</a>
+					</span>
+				</div>
+			</form>
+		</div>
+
+		<div id="locations" class="screen last-el-bottom">
+			<h1>Welcome, <span class="put_name">- </span>!</h1>
+			<p>Thank you for all you do to help people find Jesus on campus!  We hope that you'll be encouraged as you celebrate what God has done in and through you by sharing about the following key activities.</p>
+
+			<form class="last-el-bottom" id="location-form">
+				<div id="fiftypercent">
+					<div>
+						<input id="startDate" name="startDate" type="hidden" >
+						<span>From: <b class="startDate"></b></span>
+					</div>
+					<div>
+						<input id="endDate" name="endDate" type="hidden">
+						<span>To: <b class="endDate"></b></span>
+					</div>
+				</div>
+
+				<div id="slideable">
+					<h2 id="movementName">University of Central Florida Cru</h2>
+					<input type="hidden" id="movementId" name="movementId">
+					<input type="hidden" id="userName" name="userName">
+					<input type="hidden" id="userPhone" name="userPhone">
+
+					<h4>My activity (best estimate)</h4>
+
+				  <div id="statsList">
+				  	<div>
+							<label for="spiritualConvo">Spiritual Conversations</label>
+							<span rel="tooltip" title="How many Spiritual Conversations have you engaged in whether you did or did not present the gospel and bring them to a point of decision. (Each time you engage the same person count it.)">i</span>
+						</div>
+						<div>
+							<span class="dec button">-</span>
+							<input id="spiritualConvo" name="spiritualConvo" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
+							<span class="inc button">+</span>
+						</div>
+						<div>
+							<label for="personalEvang">Personal Evangelism</label>
+							<span rel="tooltip" title="How many gospel presentations through personal evangelism, where you brought him/her to a point of decision? (Each time you share the gospel with the same person count it) (Includes staff, student, faculty & volunteer evangelism and personal internet evangelism)">i</span>
+						</div>
+						<div>
+							<span class="dec button">-</span>
+							<input id="personalEvang" name="personalEvang" type="number" min="0" max="100" step="1"  inputmode="numeric" value="0">
+							<span class="inc button">+</span>
+						</div>
+						<div>
+							<label for="personalEvangDec">Personal Evangelism Decisions</label>
+							<span rel="tooltip" title="How many people have indicated a decision to receive Christ as their Savior and Lord after hearing a personal presentation of the gospel?">i</span>
+						</div>
+						<div>
+							<span class="dec button">-</span>
+							<input id="personalEvangDec" name="personalEvangDec" type="number" min="0" max="100" step="1"  inputmode="numeric" value="0">
+							<span class="inc button">+</span>
+						</div>
+						<div>
+							<label for="holySpiritPres">Holy Spirit Presentations</label>
+							<span rel="tooltip" title="How many people have heard a presentation of the ministry of the Holy Spirit and been given the opportunity to respond?">i</span>
+						</div>
+						<div>
+							<span class="dec button">-</span>
+							<input id="holySpiritPres" name="holySpiritPres" type="number" min="0" max="100" step="1"  inputmode="numeric" value="0">
+							<span class="inc button">+</span>
+						</div>
+					</div>
+				</div>
+				<div>
+					<span class="bottom-button">
+						<button type="button" id="movementSkip" onclick="goToNextMovement();" class="white">Skip</button>
+						<button type="button" id="movementNext" style="width: 40%;" onclick="processLocationForm();">Save & Next</button>
+						<button type="button" id="movementSubmit" onclick="submitLocationForm();" class="white">Submit</button>
+					</span>
+					<span class="questions">
+						Questions or Bugs? Email 
+						<a href="mailto: carl.hempel@cru.org">carl.hempel@cru.org</a>
+					</span>
+				</div>
+			</form>
+		</div>
+
+		<div id="summary" class="screen last-el-bottom">
+			<h1></h1>
+
+			<div id="reminder">
+				<div onclick="$('#hiddenReminder').hide(); $('#blurBackground').hide();" id="blurBackground"></div>
+				<button onclick="$('#hiddenReminder').toggle(); $('#blurBackground').toggle();"><span>&#128197;<!-- 💬--></span> Set a reminder</button>
+				<div id="hiddenReminder">
+					<p>What day/time?</p>
+					<div class="day-of-week">
+						<input id="DOW_0-0" type="radio" name="weekday" value="0"><label for="DOW_0-0">S</label>
+						<input id="DOW_0-1" type="radio" name="weekday" value="1"><label for="DOW_0-1">M</label>
+						<input id="DOW_0-2" type="radio" name="weekday" value="2"><label for="DOW_0-2">T</label>
+						<input id="DOW_0-3" type="radio" name="weekday" value="3"><label for="DOW_0-3">W</label>
+						<input id="DOW_0-4" type="radio" name="weekday" value="4"><label for="DOW_0-4">T</label>
+						<input id="DOW_0-5" type="radio" name="weekday" value="5" checked><label for="DOW_0-5">F</label>
+						<input id="DOW_0-6" type="radio" name="weekday" value="6"><label for="DOW_0-6">S</label>
+					</div>
+					<input type="time" id="reminderTime" name="reminderTime" value="12:00"><br><br>
+					<button onclick="setCalendarReminder();">&#128197; Set Google Calendar reminder</button>
+					<!--button onclick="setTextReminder();">💬 Set text reminder</button-->
+				</div>
+			</div>
+
+			<p style="text-align: center;">Thanks for celebrating with us all that God is doing on Campus! Below is just a small snapshot of what God is doing on your campus in the last 3 weeks.</p>
+      
+      <div class="cards">
+	      <div class="card left">
+	      	<img src="gospel.png" width="80px" height="80px">
+	      	<p>Your group shared the Gospel with <span id="personalEvangSum"></span>!</p>
+	      </div>
+	      <div class="card right">
+	      	<img src="spirit.png" width="80px" height="80px">
+	      	<p>Your group saw <span id="holySpiritPresSum"></span> hear a presentation of the Spirit Filled Life!</p>
+	      </div>
+	      <div class="card center">
+	      	<img src="decision.png" width="80px" height="80px">
+	      	<p>Your group saw <span id="personalEvangDecSum"></span> indicate a decision to accept Jesus!</p>
+	      </div>
+	    </div>
+      
+      <div>
+      	<span class="bottom-button">
+					<button onclick="location.hash='';">Enter More</button>
+				</span>
+				<span class="questions">
+					Questions or Bugs? Email 
+					<a href="mailto: carl.hempel@cru.org">carl.hempel@cru.org</a>
+				</span>
+			</div>
+		</div>
+
+		<div id="spin-container">
+			<div id="spinner">
+			</div>
+		</div>
+
+	</body>
+</html>
