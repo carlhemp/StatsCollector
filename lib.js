@@ -35,16 +35,10 @@ function setUser(user){
   return;
 }
 
-//INITIALIZE HASHCHANGE AND LOAD MOVEMENT LIST INTO MEMORY
-document.addEventListener("DOMContentLoaded", function(){
-  window.addEventListener("hashchange", hashchanged, false);
-  hashchanged();
-});
-
 async function loadMovements(){
   startSpin();
   var jqxhr = await $.ajax({
-    url: "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec",
+    url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
     data: "movements=true"
@@ -58,7 +52,7 @@ async function loadMovements(){
 async function registerUser(name, phone, locations){
   startSpin();
   var jqxhr = await $.ajax({
-    url: "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec",
+    url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
     data: "registerUser=true&userPhone="+phone+"&userName="+name+"&movementIds="+locations.map(loc => loc.id)
@@ -71,7 +65,7 @@ async function registerUser(name, phone, locations){
 async function updateUser(phone, locations){
   startSpin();
   var jqxhr = await $.ajax({
-    url: "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec",
+    url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
     data: "updateUser=true&userPhone="+phone+"&movementIds="+locations.map(loc => loc.id)
@@ -85,7 +79,7 @@ async function requestUser(userPhone, spin=true){
   if(spin) {startSpin();}
   await loadMovements(); //needed for matching new locations as they're downloaded.
   var jqxhr = await $.ajax({
-    url: "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec",
+    url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
     data: "requestUser=true&userPhone="+userPhone
@@ -104,6 +98,63 @@ async function requestUser(userPhone, spin=true){
   if(spin) {stopSpin();}
   return jqxhr;
 }
+
+//INITIALIZE HASHCHANGE AND LOAD MOVEMENT LIST INTO MEMORY
+document.addEventListener("DOMContentLoaded", function(){
+  window.addEventListener("hashchange", hashchanged, false);
+  hashchanged();
+
+  //setup form listeners.
+  var form = document.getElementById('onboard-form');
+  if (form.attachEvent) {
+      form.attachEvent("submit", processOnboardForm);
+  } else {
+      form.addEventListener("submit", processOnboardForm);
+  }
+
+  window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu7LxbswCpgsrAkgUU5-wLsiMjVJr425L9thAGPlHVMNHE3YMn4lTDo/exec";
+
+
+  //add +/- buttons to input[type="number"]
+  $("#statsList").on("click", function(e) {
+    if(e.target && e.target.classList.contains('button')){
+      let $button = $(e.target);
+      let oldValue = $button.parent().find("input").val();
+      if ($button.text() == "+") {
+        var newVal = parseFloat(oldValue) + 1;
+      } else {
+       // Don't allow decrementing below zero
+        if (oldValue > 0) {
+          var newVal = parseFloat(oldValue) - 1;
+        } else {
+          newVal = 0;
+        }
+      }
+      $button.parent().find("input").val(newVal).trigger("change");
+    }
+  });
+  $('#statsList').on("change", function(e) {
+    if(e.target && e.target.nodeName == "INPUT") {
+     
+      //select all previous inputs and toggle on a notice/toolip if less than except for HS
+      let SC = parseInt($('#spiritualConvo').val());
+      let PE = parseInt($('#personalEvang').val());
+      let PED = parseInt($('#personalEvangDec').val());
+      if((SC < PE) || (SC < PED)){
+        $('#spiritualConvo').parent().addClass('tooLow');
+      } 
+      else {
+        $('#spiritualConvo').parent().removeClass('tooLow');
+      }
+      if(PE < PED){
+        $('#personalEvang').parent().addClass('tooLow');
+      } 
+      else {
+        $('#personalEvang').parent().removeClass('tooLow');
+      }
+    }
+  });    
+});
 
 async function hashchanged(){
   var hash = location.hash;
@@ -304,12 +355,6 @@ async function processOnboardForm(e) {
 
   return false;
 }
-var form = document.getElementById('onboard-form');
-if (form.attachEvent) {
-    form.attachEvent("submit", processOnboardForm);
-} else {
-    form.addEventListener("submit", processOnboardForm);
-}
 
 //PROCESS LOCATION FORM
 function processLocationForm(submit) {
@@ -341,7 +386,7 @@ async function submitLocationForm(){
   processLocationForm(true);
 
   startSpin();
-  var url  =  "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec";
+  var url  =  window.indicatorAppURL;
   
   //we're resetting location to 0
   window.user.location = 0;
@@ -411,7 +456,7 @@ async function setTextReminder(){
   let time = weekMap[parseInt($('input[name="weekday"]:checked').val())]+' '+$('#reminderTime').val();
 
   var jqxhr = await $.ajax({
-    url: "https://script.google.com/a/cru.org/macros/s/AKfycbyLKAjuQwwDy2j2s_rfg2NiRrOO-jUyJbVKxuGi/exec",
+    url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
     data: "updateUser=true&userPhone="+window.user.phone+"&txtReminderTime="+encodeURI(time+' '+Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -427,41 +472,6 @@ async function setTextReminder(){
   });
   stopSpin();
 }
-
-//add +/- buttons to input[type="number"]
-$(".button").on("click", function() {
-  let $button = $(this);
-  let oldValue = $button.parent().find("input").val();
-  if ($button.text() == "+") {
-    var newVal = parseFloat(oldValue) + 1;
-  } else {
-   // Don't allow decrementing below zero
-    if (oldValue > 0) {
-      var newVal = parseFloat(oldValue) - 1;
-    } else {
-      newVal = 0;
-    }
-  }
-  $button.parent().find("input").val(newVal).trigger("change");
-});
-$('#statsList input').on("change", function() {
-  //select all previous inputs and toggle on a notice/toolip if less than except for HS
-  let SC = parseInt($('#spiritualConvo').val());
-  let PE = parseInt($('#personalEvang').val());
-  let PED = parseInt($('#personalEvangDec').val());
-  if((SC < PE) || (SC < PED)){
-    $('#spiritualConvo').parent().addClass('tooLow');
-  } 
-  else {
-    $('#spiritualConvo').parent().removeClass('tooLow');
-  }
-  if(PE < PED){
-    $('#personalEvang').parent().addClass('tooLow');
-  } 
-  else {
-    $('#personalEvang').parent().removeClass('tooLow');
-  }
-});    
 
 //TOOLTIP CODE
 $( function() {
