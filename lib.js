@@ -1,3 +1,5 @@
+window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu7LxbswCpgsrAkgUU5-wLsiMjVJr425L9thAGPlHVMNHE3YMn4lTDo/exec";
+
 function toggleRegister(){
   if($('#register')[0].checked){
     $('#regUserName').prop('required',true); 
@@ -35,15 +37,15 @@ function setUser(user){
   return;
 }
 
-async function loadMovements(){
+async function loadMovements(listOfMovementIDs){
   startSpin();
   var jqxhr = await $.ajax({
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "movements=true"
+    data: "movements="+listOfMovementIDs
   }).done(function(data){
-    window.movementsList = data;
+    console.log(data);
   });
   stopSpin();
   return jqxhr;
@@ -58,6 +60,7 @@ async function registerUser(name, phone, locations){
     data: "registerUser=true&userPhone="+phone+"&userName="+name+"&movementIds="+locations.map(loc => loc.id)
   }).done(function(data){
     console.log(data);
+    setUser(data.user);
   });
   stopSpin();
   return jqxhr;
@@ -71,13 +74,13 @@ async function updateUser(phone, locations){
     data: "updateUser=true&userPhone="+phone+"&movementIds="+locations.map(loc => loc.id)
   }).done(function(data){
     console.log(data);
+    setUser(data.user);
   });
   stopSpin();
   return jqxhr;
 }
 async function requestUser(userPhone, spin=true){
   if(spin) {startSpin();}
-  await loadMovements(); //needed for matching new locations as they're downloaded.
   var jqxhr = await $.ajax({
     url: window.indicatorAppURL,
     method: "GET",
@@ -85,11 +88,7 @@ async function requestUser(userPhone, spin=true){
     data: "requestUser=true&userPhone="+userPhone
   }).done(function(data){
     console.log(data);
-    let user = getUser();
-    user.lastUpdate = data.user.userLastUpdate;
-    user.locations = data.user.userIds.split(',').map(function(id){
-        return {name: window.movementsList[id], id: id};
-      });
+    let user = data.user;
     setUser(user);
     window.user = user;
     $('#startDate').val(user.lastUpdate);
@@ -99,10 +98,12 @@ async function requestUser(userPhone, spin=true){
   return jqxhr;
 }
 
-//INITIALIZE HASHCHANGE AND LOAD MOVEMENT LIST INTO MEMORY
+//ADD EVENT LISTENERS HASHCHANGE, AND setup variables
 document.addEventListener("DOMContentLoaded", function(){
   window.addEventListener("hashchange", hashchanged, false);
   hashchanged();
+
+  window.formSubs = [];
 
   //setup form listeners.
   var form = document.getElementById('onboard-form');
@@ -111,9 +112,6 @@ document.addEventListener("DOMContentLoaded", function(){
   } else {
       form.addEventListener("submit", processOnboardForm);
   }
-
-  window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu7LxbswCpgsrAkgUU5-wLsiMjVJr425L9thAGPlHVMNHE3YMn4lTDo/exec";
-
 
   //add +/- buttons to input[type="number"]
   $("#statsList").on("click", function(e) {
@@ -156,6 +154,7 @@ document.addEventListener("DOMContentLoaded", function(){
   });    
 });
 
+//HASHCHANGE AND LOAD MOVEMENT LIST INTO MEMORY
 async function hashchanged(){
   var hash = location.hash;
   let projector = document.getElementById('projector');
@@ -164,25 +163,27 @@ async function hashchanged(){
   let local_user = getUser();
   if(local_user){
     if(!window.user){ //first time opening the website - let's check for changes to the user.
+      console.log('requesting user', local_user.phone);
       await requestUser(local_user.phone);
     }
   }
   else if(!hash.startsWith('#onboarding')){
+    console.log('redirecting to onboarding b/c no user exists');
     location.hash = "#onboarding";
-    return
+    return;
   }
   
 //IF BLANK WE START HERE>
   if(hash == ''){
-    location.hash = '#locations';
+    location.hash = '#locations/0/'+window.user.movements[0].id;
   }
 //ONBOARDING!-----------------------------------------------------------------
   else if(hash.startsWith('#onboarding')){
     if(window.user){
       $('#notification').remove();
       $('#locations').prepend('<div id="notification">You visited an onboarding link. Click <a onclick="delete window.user; localStorage.removeItem(\'user\'); $(\'#notification\').remove();" href="'+hash+'">here</a> to set up!</div>');
-      location.hash = "#locations";
-      return
+      location.hash = "";
+      return;
     }
     $('#movements').empty();
     $('input[type="checkbox"]').prop('checked', false);
@@ -198,9 +199,9 @@ async function hashchanged(){
     }
     //then lets show our movements page
     if(movements){
-      await loadMovements();
-      for(movement of movements) {
-        $('#movements').append('<input id="n'+movement+'" name="'+movement+'" type="checkbox" ><label for="n'+movement+'" >'+window.movementsList[movement]+'</label>');
+      let movementsList = await loadMovements(movements);
+      for(movement of movementsList) {
+        $('#movements').append('<input id="n'+movement.id+'" name="'+movement.id+'" type="checkbox" ><label for="n'+movement.id+'" >'+movement.name+'</label>');
       }
       $('.movementInfo').show();
       $('.loginInfo').hide();
@@ -219,12 +220,9 @@ async function hashchanged(){
   else if(hash.startsWith('#locations')){
     // #locations - start with current location
     let user = window.user;
-    if(user.location == 0) {
-      window.formSubs = [];
-      requestUser(user.phone, false);
-    }
+    let movement_num = parseInt(hash.split('/')[1]);
 
-    if(user.locations.length == user.location + 1){
+    if(user.movements.length == movement_num + 1){
       $('#movementNext').addClass('hideLeft');
       $('#movementSkip').text('Reset');
       $('#movementSubmit').text('Submit').removeClass('white');
@@ -235,12 +233,12 @@ async function hashchanged(){
       $('#movementSubmit').text('Submit').addClass('white');
     }
 
-    var movement = user.locations[user.location];
+    var movement = user.movements[movement_num];
     $('.put_name').text(user.name); 
 
     let prefix = '';
-    if(user.locations.length > 1){
-      prefix = (user.location + 1)+"/"+user.locations.length+" ";
+    if(user.movements.length > 1){
+      prefix = (movement_num + 1)+"/"+user.movements.length+" ";
     }
     $('#movementName').text(prefix + movement.name);
     $('#movementId').val(movement.id); //hidden field
@@ -256,7 +254,6 @@ async function hashchanged(){
     $('#endDate').val(endDate);
     $('.endDate').text(endDate);
 
-    // #locations/id_number - look up that id and display it - 2.0 capabilities
 
     projector.classList = 'locations';
     window.document.title = "Enter Stats for "+movement.name;
@@ -279,7 +276,6 @@ async function processOnboardForm(e) {
   user.name = nameEl.value;
   user.phone = phoneEl.value;
   user.locations = [];
-  user.location = 0;
 
 
   let defaultMovements = false;
@@ -306,18 +302,16 @@ async function processOnboardForm(e) {
     //we send in and add a new user
     if(register){
       let result = await registerUser(user.name, user.phone, user.locations);
-      user.lastUpdate = result.user.userLastUpdate;
       if(result.result != "success"){
         alert("I'm sorry that phone number is already registered with a name, if it's yours, try unchecking register, and click Setup Device");
-        return
+        return;
       }
     }
     //OR we overwrite the existing.
     else {
       let result = await updateUser(user.phone, user.locations);
       if(result.result == "success"){
-        user.name = result.user.userName;
-        user.lastUpdate = result.user.userLastUpdate;
+        console.log(result)
       }
       else {
         alert("I'm sorry that phone number is not yet registered! Go ahead and check 'Register as new user' and enter your name. \n\n OR if you entered your number wrong, please try again :)")
@@ -328,14 +322,10 @@ async function processOnboardForm(e) {
   }
   //attempt to load information from db
   else {
-    await loadMovements();
+    console.log(user.phone);
     let result = await requestUser(user.phone);
     if(result.result == "success"){
-      user.name = result.user.userName;
-      user.locations = result.user.userIds.split(',').map(function(id){
-        return {name: window.movementsList[id], id: id};
-      });
-      user.lastUpdate = result.user.userLastUpdate;
+      console.log('got the user from db');
     }
     else {
       alert("I'm sorry, that phone number is not registered.  Either you entered your number wrong, or you need to register.  To do so  please register using the custom link you were sent.")
@@ -344,8 +334,6 @@ async function processOnboardForm(e) {
   }
 
   //after all that we set the user and return
-  setUser(user);
-  window.user = user;
   location.hash = "#";
   
   //clear form
@@ -366,9 +354,10 @@ function processLocationForm(submit) {
   window.formSubs.push(form.serialize());
   disabled.attr('disabled','disabled');
 
+  let movement_num = parseInt(location.hash.split('/')[1]);
+
   //advance the location if we're at the end let's submit!
-  console.log(!submit, user.locations.length != user.location + 1)
-  if(!submit && user.locations.length != user.location + 1){
+  if(!submit && user.movements.length != movement_num + 1){
     goToNextMovement();
   }
   
@@ -388,8 +377,6 @@ async function submitLocationForm(){
   startSpin();
   var url  =  window.indicatorAppURL;
   
-  //we're resetting location to 0
-  window.user.location = 0;
   //submit everything - we can do this in one go.
   var jqxhr = await $.ajax({
     url: url,
@@ -403,6 +390,7 @@ async function submitLocationForm(){
   $('#holySpiritPresSum').text(jqxhr.groupNum.holySpiritPres+(jqxhr.groupNum.holySpiritPres != 1 ? ' people' : ' person' ));
   $('#personalEvangDecSum').text(jqxhr.groupNum.personalEvangDec+(jqxhr.groupNum.personalEvangDec != 1 ? ' people' : ' person' ));
   window.user.lastUpdate = new Date().toLocaleString().split(',')[0];
+  window.formSubs = []; //reset window.formSubs
   setUser(window.user);
   //THen change the location
   location.hash = "#summary";
@@ -417,13 +405,14 @@ function goToNextMovement() {
     $('#slideable').removeClass("transition");
   }, 250);
   //$('#location-form').show( { direction: "right" }, 200);
-  if(window.user.locations.length == user.location + 1){
-    window.user.location = 0;
+  let movement_num = parseInt(location.hash.split('/')[1]);
+  if(window.user.movements.length == movement_num + 1){
+    movement_num = 0;
   }
   else{
-    window.user.location = user.location + 1;
+    movement_num += 1;
   }
-  location.hash = "#locations/"+user.locations[user.location].id;
+  location.hash = "#locations/"+movement_num+"/"+user.movements[movement_num].id;
 }
 
 function startSpin() {
