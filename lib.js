@@ -234,7 +234,28 @@ async function hashchanged(){
     }
 
     var movement = user.movements[movement_num];
+    let strategy = user.movementStrategies[movement.strategy];
     $('.put_name').text(user.name); 
+
+    document.getElementById('strategyWelcomeText').innerHTML = strategy.welcomeText;
+    document.documentElement.style.setProperty('--main-color', strategy.primaryColor);
+
+    let statsListContent='';
+    for(question of strategy.questions){
+     statsListContent += `<div>
+        <label for="${question.id}">${question.name}</label>
+        <span rel="tooltip" title="${question.description.replace(/"/g,"'")}">i</span>
+      </div>
+      <div>
+        <span class="dec button">-</span>
+        <input id="${question.id}" name="${question.id}" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
+        <span class="inc button">+</span>
+      </div>`;
+    }
+
+    document.getElementById('statsList').innerHTML = statsListContent;
+
+    setToolTips();
 
     let prefix = '';
     if(user.movements.length > 1){
@@ -470,7 +491,9 @@ async function setTextReminder(){
 }
 
 //TOOLTIP CODE
-$( function() {
+$( setToolTips());
+
+function setToolTips() {
   var targets = $( '[rel~=tooltip]' ), 
     target  = false,
     tooltip = false,
@@ -543,4 +566,4 @@ $( function() {
     target.bind( 'mouseleave', remove_tooltip );
     tooltip.bind( 'click', remove_tooltip );
   });
-});
+};
