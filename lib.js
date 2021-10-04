@@ -260,8 +260,17 @@ async function hashchanged(){
   }
 //SUMMARY!-----------------------------------------------------------------
   else if(hash.startsWith('#summary')) {
-    projector.classList = 'summary';
-    window.document.title = "Stats Summary";
+    if(window.groupNum){
+      $('#personalEvangSum').text(window.groupNum.personalEvang+(window.groupNum.personalEvang != 1 ? ' people' : ' person' ));
+      $('#holySpiritPresSum').text(window.groupNum.holySpiritPres+(window.groupNum.holySpiritPres != 1 ? ' people' : ' person' ));
+      $('#personalEvangDecSum').text(window.groupNum.personalEvangDec+(window.groupNum.personalEvangDec != 1 ? ' people' : ' person' ));
+      projector.classList = 'summary';
+      window.document.title = "Stats Summary";
+      window.groupNum = null;
+    }
+    else {
+      location.hash = '#';
+    }  
   }
 }  
 //PROCESS ONBOARDING FORM
@@ -385,15 +394,13 @@ async function submitLocationForm(){
     data: window.formSubs.join('&')
   }).done(function(data){
     console.log(data);
+    window.groupNum = data.groupNum;
+    location.hash = "#summary";
   });
-  $('#personalEvangSum').text(jqxhr.groupNum.personalEvang+(jqxhr.groupNum.personalEvang != 1 ? ' people' : ' person' ));
-  $('#holySpiritPresSum').text(jqxhr.groupNum.holySpiritPres+(jqxhr.groupNum.holySpiritPres != 1 ? ' people' : ' person' ));
-  $('#personalEvangDecSum').text(jqxhr.groupNum.personalEvangDec+(jqxhr.groupNum.personalEvangDec != 1 ? ' people' : ' person' ));
   window.user.lastUpdate = new Date().toLocaleString().split(',')[0];
   window.formSubs = []; //reset window.formSubs
   setUser(window.user);
   //THen change the location
-  location.hash = "#summary";
   stopSpin();
 }
 
