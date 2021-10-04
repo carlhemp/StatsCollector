@@ -28,6 +28,8 @@ function doGet(e){
         var RESPONSE_SHEET = "Responses";
 //  Enter sheet name where Movements are
         var MOVEMENT_SHEET = "Movements";
+//  Enter sheet name where Strategies are
+        var STRATEGY_SHEET = "Strategies";
 //  Enter sheet name where Users are
         var USER_SHEET = "Users";
 //  Enter sheet name where Users are
@@ -35,27 +37,75 @@ function doGet(e){
 
 var SCRIPT_PROP = PropertiesService.getScriptProperties(); // new property service
 
-function getMovements(extended=false) {
-  let col = 5;
-  if(extended){
-    col = 9;
-  }
+function getMovements(movementsList, purpose) {
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(MOVEMENT_SHEET);
   let movements = sheet.getRange(2,1,sheet.getLastRow() - 1,sheet.getLastColumn()).getValues();
-  
-  let object = {};
-  if(!extended){
-    for(movement of movements){
-      object[movement[0]] = movement[5];  //Movement ID and Movemement Name
+  movementsList = movementsList.map(mvmnt => parseInt(mvmnt));
+  Logger.log(movementsList);
+
+  let object = [];
+  for(movement of movements){
+    if(movementsList.includes(parseInt(movement[0]))){
+      switch(purpose) {
+        case 'onboard': {
+          let mvmnt = {};
+          mvmnt.id = movement[0];    //id
+          mvmnt.name = movement[5];  //name
+          object.push(mvmnt);
+        }break;
+        case 'user_info': {
+          let mvmnt = {};
+          mvmnt.id = movement[0];       //id
+          mvmnt.name = movement[5];     //name
+          mvmnt.strategy = movement[4];  //strategy
+          object.push(mvmnt);
+        }break;
+        case 'summary':
+          object.push([movement[5],movement[6],movement[7],movement[8],movement[9]]);  //summary information
+      }
     }
   }
-  else {
-    for(movement of movements){
-      object[movement[0]] = [movement[5],movement[6],movement[7],movement[8],movement[9]];
-    } 
-  }      
   return object;
+}
+function getCru(){
+  getStrategies(['Cru','High School']);
+}
+function getStrategies(strategiesList) {
+  let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
+  let sheet = doc.getSheetByName(STRATEGY_SHEET);
+  let strategies = sheet.getRange(1,2,sheet.getLastRow(),sheet.getLastColumn()).getValues();
+  Logger.log(strategiesList);
+
+  let object = {};
+  Logger.log(strategies.length);
+  for(j = 0; j < strategies[0].length -1; j++){ //Vertically arranged sheet, so we are iterating over the columns
+    if(strategiesList.includes(strategies[0][j])){
+      let questions = [];
+      for(i = 3; i < 46; i+=3){
+        if(strategies[i][j] != ''){
+          let question = {};
+          question.id = strategies[i][j];
+          question.name = strategies[i+1][j];
+          question.description = strategies[i+2][j];
+          questions.push(question);
+        }
+      }
+      let strategy = {};
+      strategy.welcomeText = strategies[1][j];
+      strategy.primaryColor = strategies[2][j];
+      strategy.questions = questions;
+      
+      object[strategies[0][j]] = strategy;
+
+    }
+  }
+  Logger.log(JSON.stringify(object));
+  return object;
+}
+
+function getCarl(){
+  Logger.log(JSON.stringify(getUser(8453320550)));
 }
 
 function getUser(phone){
@@ -69,16 +119,20 @@ function getUser(phone){
   for(i in users){
     if(users[i][0] == phone) {
       user = users[i];
+      break;
     }
   }
-  user[3] = Utilities.formatDate(user[3], "GMT+1", "M/d/yyyy");
+  if(user){
+    user[2] = getMovements(user[2].split(','),'user_info');
+    user[3] = Utilities.formatDate(user[3], "GMT+1", "M/d/yyyy");
+  }
   return user;
 }
 
 //SENDING list of movements
 function sendMovements(e) {
   try {
-    let object = getMovements();
+    let object = getMovements(e.parameter.movements.split(','),'onboard');
       
     return ContentService
           .createTextOutput(JSON.stringify(object))
@@ -96,10 +150,11 @@ function sendMovements(e) {
 function sendUserInfo(e) {
   try {
     let user = getUser(e.parameter.userPhone);
-   
-    if(user){   
+    
+    if(user){
+      let strategies = getStrategies([...new Set(user[2].map(mvmt => mvmt.strategy))]); //get's the unique strategies as a list
       return ContentService
-      .createTextOutput(JSON.stringify({"result":"success", "user": {'userPhone':user[0],'userName':user[1],'userIds':user[2],'userLastUpdate':user[3]}}))
+            .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'movementStrategies': strategies,'lastUpdate':user[3]}}))
             .setMimeType(ContentService.MimeType.JSON);
     }
     else {
@@ -158,7 +213,7 @@ function saveUser(e) {
       SpreadsheetApp.flush();
       let user = getUser(e.parameter.userPhone);
       return ContentService
-            .createTextOutput(JSON.stringify({"result":"success", "user": {'userPhone':user[0],'userName':user[1],'userIds':user[2],'userLastUpdate':user[3]}}))
+            .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'lastUpdate':user[3]}}))
             .setMimeType(ContentService.MimeType.JSON);
     }
     else {
@@ -228,7 +283,7 @@ function updateUser(e) {
         SpreadsheetApp.flush();
         let user = getUser(e.parameter.userPhone);
         return ContentService
-              .createTextOutput(JSON.stringify({"result":"success", "user": {'userPhone':user[0],'userName':user[1],'userIds':user[2],'userLastUpdate':user[3]}}))
+              .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'lastUpdate':user[3]}}))
               .setMimeType(ContentService.MimeType.JSON);        
       }
     }
@@ -279,20 +334,7 @@ function saveForm(e) {
     //Get the results from our movements to send to the summary page
     SpreadsheetApp.flush();
     let movements = e.parameters.movementId;
-    let object = getMovements(true);
-    let groupNum = {};
-    groupNum.spiritualConvo   = 0;
-    groupNum.personalEvang    = 0;
-    groupNum.personalEvangDec = 0;
-    groupNum.holySpiritPres   = 0;
-    
-    for(movement of movements){
-      let stats = object[movement];
-      groupNum.spiritualConvo   += stats[1];
-      groupNum.personalEvang    += stats[2];
-      groupNum.personalEvangDec	+= stats[3];
-      groupNum.holySpiritPres   += stats[4];
-    }
+    let groupNum = summarizeMovements(movements);
     
     // return json success results
     return ContentService
@@ -306,6 +348,22 @@ function saveForm(e) {
   } finally { //release lock
     lock.releaseLock();
   }
+}
+function summarizeMovements(movements){
+  let summaryMovements = getMovements(movements, 'summary');
+  let groupNum = {};
+  groupNum.spiritualConvo   = 0;
+  groupNum.personalEvang    = 0;
+  groupNum.personalEvangDec = 0;
+  groupNum.holySpiritPres   = 0;
+  
+  for(movement of summaryMovements){
+    groupNum.spiritualConvo   += parseInt(movement[1]);
+    groupNum.personalEvang    += parseInt(movement[2]);
+    groupNum.personalEvangDec += parseInt(movement[3]);
+    groupNum.holySpiritPres   += parseInt(movement[4]);
+  }
+  return groupNum;
 }
 
 function setup() {
