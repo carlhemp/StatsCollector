@@ -15,7 +15,7 @@ function toggleRegister(){
 //SERVICE WORKER
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', {
-    scope: './'
+    scope: './StatsCollector/'
   })
   .then((serviceWorker) => {
     console.log('service worker registration successful');
@@ -30,10 +30,10 @@ if ('serviceWorker' in navigator) {
 
 //HELPER FUNCTIONS FOR USER
 function getUser(){
-  return JSON.parse(localStorage.getItem('user'));
+  return JSON.parse(localStorage.getItem('SC_user'));
 }
 function setUser(user){
-  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem('SC_user', JSON.stringify(user));
   return;
 }
 
@@ -162,7 +162,7 @@ async function hashchanged(){
   //RESET CODE
   if(hash.startsWith('#reset')) {
     if(confirm('reset your local data?  You can still log back into your account afterward')){
-      localStorage.removeItem('user');
+      localStorage.removeItem('SC_user');
       location.hash = '#';
       location.reload();
     }
@@ -194,7 +194,7 @@ async function hashchanged(){
   else if(hash.startsWith('#onboarding')){
     if(window.user){
       $('#notification').remove();
-      $('#locations').prepend('<div id="notification">You visited an onboarding link. Click <a onclick="delete window.user; localStorage.removeItem(\'user\'); $(\'#notification\').remove();" href="'+hash+'">here</a> to set up!</div>');
+      $('#locations').prepend('<div id="notification">You visited an onboarding link. Click <a onclick="delete window.user; localStorage.removeItem(\'SC_user\'); $(\'#notification\').remove();" href="'+hash+'">here</a> to set up!</div>');
       location.hash = "";
       return;
     }
