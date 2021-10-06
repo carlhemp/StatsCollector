@@ -14,7 +14,7 @@
     }
   ],
   "theme_color": "#FFCF07",
-  "start_url": "/StatsSPRINT/index.html",
+  "start_url": "/StatsCollector/index.html",
   "background_color": "#FFCF07",
   "display": "standalone"
 }

@@ -257,7 +257,7 @@ button:hover {
 	left: 0;
 	height: 100%;
 	transform: translate3d(100%,0,0);
-	padding: 0 2rem 0 2rem;
+	padding: 0 1rem 0 1rem;
 	overflow-y: auto;
 }
 .last-el-bottom {
@@ -459,7 +459,9 @@ span[rel="tooltip"] {
   border-radius: 50%;
   border: 1px solid var(--medium-gray);
   display: inline-block;
-  width: 1.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding-top: .1rem;
 }
 span[rel="tooltip"] {
   cursor: help;

@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function(){
   window.addEventListener("hashchange", hashchanged, false);
   hashchanged();
 
-  window.formSubs = [];
+  window.formSubs = {};
 
   //setup form listeners.
   var form = document.getElementById('onboard-form');
@@ -401,7 +401,7 @@ function processLocationForm(submit) {
   var form = $('#location-form');
 
   var disabled = form.find(':input:disabled').removeAttr('disabled');
-  window.formSubs.push(form.serialize());
+  window.formSubs[document.getElementById('movementId').value] = form.serialize();
   disabled.attr('disabled','disabled');
 
   let movement_num = parseInt(location.hash.split('/')[1]);
@@ -432,14 +432,14 @@ async function submitLocationForm(){
     url: url,
     method: "GET",
     dataType: "json",
-    data: window.formSubs.join('+')
+    data: Object.values(window.formSubs).join('+')
   }).done(function(data){
     console.log(data);
     window.groupNum = data.groupNum;
     location.hash = "#summary";
   });
   window.user.lastUpdate = new Date().toLocaleString().split(',')[0];
-  window.formSubs = []; //reset window.formSubs
+  window.formSubs = {}; //reset window.formSubs
   setUser(window.user);
   //THen change the location
   stopSpin();
@@ -456,6 +456,7 @@ function goToNextMovement() {
   let movement_num = parseInt(location.hash.split('/')[1]);
   if(window.user.movements.length == movement_num + 1){
     movement_num = 0;
+    window.formSubs = {};
   }
   else{
     movement_num += 1;
