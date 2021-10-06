@@ -313,19 +313,36 @@ function saveForm(e) {
     // next set where we write the data - you could write to multiple/alternate destinations
     var doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
     var sheet = doc.getSheetByName(RESPONSE_SHEET);
-    
-    for(h in e.parameters.movementId){
-      // we'll assume header is in row 1 but you can override with header_row in GET/POST data
-      var headRow = e.parameter.header_row || 1;
-      var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    let formSubs = e.queryString.split('+').map(form => form.split('&').map(param => [param.split('=')[0],decodeURIComponent(param.split('=')[1])]))
+
+    for(sub of formSubs){
+      let headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      let param_ob = {};
+      
+      //create param_ob and add headers if missing
+      let missing_params = [];
+      for(param of sub){
+        if(!headers.includes(param[0])){ //we need to add this to the headers row.
+          missing_params.push(param[0]);
+        }
+        param_ob[param[0]] = param[1];
+      }
+
+      //set new headers and regen the headers var
+      if(missing_params.length != 0){
+        sheet.getRange(1,sheet.getMaxColumns()+1,1,missing_params.length).setValues([missing_params]);
+        headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      }
+
       var nextRow = sheet.getLastRow()+1; // get next row
-      var row = []; 
+      var row = [];
       // loop through the header columns
       for (i in headers){
         if (headers[i] == "Timestamp"){ // special case if you include a 'Timestamp' column
           row.push(new Date());
         } else { // else use header name to get data
-          row.push(e.parameters[headers[i]][h]);
+          row.push(param_ob[headers[i]]);
         }
       }
       // more efficient to set values as [][] array than individually
@@ -338,12 +355,12 @@ function saveForm(e) {
     
     // return json success results
     return ContentService
-    .createTextOutput(JSON.stringify({"result":"success", "number": e.parameters.movementId.length,"groupNum": groupNum}))
+    .createTextOutput(JSON.stringify({"result":"success", "number": e.parameters.movementId.length,"groupNum": groupNum,'orig_request':e}))
           .setMimeType(ContentService.MimeType.JSON);
-  } catch(e){
+  } catch(error){
     // if error return this
     return ContentService
-          .createTextOutput(JSON.stringify({"result":"error", "error": e}))
+          .createTextOutput(JSON.stringify({"result":"error", "error": error,'data': e}))
           .setMimeType(ContentService.MimeType.JSON);
   } finally { //release lock
     lock.releaseLock();

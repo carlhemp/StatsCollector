@@ -432,7 +432,7 @@ async function submitLocationForm(){
     url: url,
     method: "GET",
     dataType: "json",
-    data: window.formSubs.join('&')
+    data: window.formSubs.join('+')
   }).done(function(data){
     console.log(data);
     window.groupNum = data.groupNum;
