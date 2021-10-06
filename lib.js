@@ -159,6 +159,19 @@ async function hashchanged(){
   var hash = location.hash;
   let projector = document.getElementById('projector');
 
+  //RESET CODE
+  if(hash.startsWith('#reset')) {
+    if(confirm('reset your local data?  You can still log back into your account afterward')){
+      localStorage.removeItem('user');
+      location.hash = '#';
+      location.reload();
+    }
+    else{
+      location.hash = '#';
+    }
+    return;
+  }
+
   //Make sure we've got a user.
   let local_user = getUser();
   if(local_user){
