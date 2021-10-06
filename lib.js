@@ -15,7 +15,7 @@ function toggleRegister(){
 //SERVICE WORKER
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', {
-    scope: './StatsCollector/'
+    scope: './'
   })
   .then((serviceWorker) => {
     console.log('service worker registration successful');
