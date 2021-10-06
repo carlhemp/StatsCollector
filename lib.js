@@ -2,13 +2,13 @@ window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu
 
 function toggleRegister(){
   if($('#register')[0].checked){
-    $('#regUserName').prop('required',true); 
-    $('#regUserName').show(); 
+    $('#regUserName').prop('required',true);
+    $('#regUserName').show();
     $('#formSubmit span').show();
   }
   else{
-    $('#regUserName').removeAttr('required'); 
-    $('#regUserName').hide(); 
+    $('#regUserName').removeAttr('required');
+    $('#regUserName').hide();
     $('#formSubmit span').hide();
   }
 }
@@ -133,25 +133,25 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   $('#statsList').on("change", function(e) {
     if(e.target && e.target.nodeName == "INPUT") {
-     
+
       //select all previous inputs and toggle on a notice/toolip if less than except for HS
       let SC = parseInt($('#spiritualConvo').val());
       let PE = parseInt($('#personalEvang').val());
       let PED = parseInt($('#personalEvangDec').val());
       if((SC < PE) || (SC < PED)){
         $('#spiritualConvo').parent().addClass('tooLow');
-      } 
+      }
       else {
         $('#spiritualConvo').parent().removeClass('tooLow');
       }
       if(PE < PED){
         $('#personalEvang').parent().addClass('tooLow');
-      } 
+      }
       else {
         $('#personalEvang').parent().removeClass('tooLow');
       }
     }
-  });    
+  });
 });
 
 //HASHCHANGE AND LOAD MOVEMENT LIST INTO MEMORY
@@ -172,7 +172,7 @@ async function hashchanged(){
     location.hash = "#onboarding";
     return;
   }
-  
+
 //IF BLANK WE START HERE>
   if(hash == ''){
     location.hash = '#locations/0/'+window.user.movements[0].id;
@@ -195,7 +195,7 @@ async function hashchanged(){
       movements = hash.split('/')[1].split('&');
     }
     catch {
-      movements = false; 
+      movements = false;
     }
     //then lets show our movements page
     if(movements){
@@ -222,62 +222,67 @@ async function hashchanged(){
     let user = window.user;
     let movement_num = parseInt(hash.split('/')[1]);
 
-    if(user.movements.length == movement_num + 1){
-      $('#movementNext').addClass('hideLeft');
-      $('#movementSkip').text('Reset');
-      $('#movementSubmit').text('Submit').removeClass('white');
+    //if we fail, redirect to first location
+    try {
+      if(user.movements.length == movement_num + 1){
+        $('#movementNext').addClass('hideLeft');
+        $('#movementSkip').text('Reset');
+        $('#movementSubmit').text('Submit').removeClass('white');
+      }
+      else{
+        $('#movementNext').removeClass('hideLeft');
+        $('#movementSkip').text('Skip');
+        $('#movementSubmit').text('Submit').addClass('white');
+      }
+
+      var movement = user.movements[movement_num];
+      let strategy = user.movementStrategies[movement.strategy];
+      $('.put_name').text(user.name);
+
+      document.getElementById('strategyWelcomeText').innerHTML = strategy.welcomeText;
+      document.documentElement.style.setProperty('--main-color', strategy.primaryColor);
+
+      let statsListContent='';
+      for(question of strategy.questions){
+       statsListContent += `<div>
+          <label for="${question.id}">${question.name}</label>
+          <span rel="tooltip" title="${question.description.replace(/"/g,"'")}">i</span>
+        </div>
+        <div>
+          <span class="dec button">-</span>
+          <input id="${question.id}" name="${question.id}" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
+          <span class="inc button">+</span>
+        </div>`;
+      }
+
+      document.getElementById('statsList').innerHTML = statsListContent;
+      setToolTips();
+
+      let prefix = '';
+      if(user.movements.length > 1){
+        prefix = (movement_num + 1)+"/"+user.movements.length+" ";
+      }
+      $('#movementName').text(prefix + movement.name);
+      $('#movementId').val(movement.id); //hidden field
+      $('#userName').val(user.name); //hidden field
+      $('#userPhone').val(user.phone); //hidden field
+
+      // set dates for the movement
+      let endDate = new Date().toLocaleString().split(',')[0];
+      let startDate = user.lastUpdate;
+
+      $('#startDate').val(startDate);
+      $('.startDate').text(startDate);
+      $('#endDate').val(endDate);
+      $('.endDate').text(endDate);
+
+      projector.classList = 'locations';
+      window.document.title = "Enter Stats for "+movement.name;
     }
-    else{
-      $('#movementNext').removeClass('hideLeft');
-      $('#movementSkip').text('Skip');
-      $('#movementSubmit').text('Submit').addClass('white');
+    catch(error){
+      console.log(error);
+      window.location.hash = '#locations/0/'+user.movements[0].id;
     }
-
-    var movement = user.movements[movement_num];
-    let strategy = user.movementStrategies[movement.strategy];
-    $('.put_name').text(user.name); 
-
-    document.getElementById('strategyWelcomeText').innerHTML = strategy.welcomeText;
-    document.documentElement.style.setProperty('--main-color', strategy.primaryColor);
-
-    let statsListContent='';
-    for(question of strategy.questions){
-     statsListContent += `<div>
-        <label for="${question.id}">${question.name}</label>
-        <span rel="tooltip" title="${question.description.replace(/"/g,"'")}">i</span>
-      </div>
-      <div>
-        <span class="dec button">-</span>
-        <input id="${question.id}" name="${question.id}" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
-        <span class="inc button">+</span>
-      </div>`;
-    }
-
-    document.getElementById('statsList').innerHTML = statsListContent;
-
-    setToolTips();
-
-    let prefix = '';
-    if(user.movements.length > 1){
-      prefix = (movement_num + 1)+"/"+user.movements.length+" ";
-    }
-    $('#movementName').text(prefix + movement.name);
-    $('#movementId').val(movement.id); //hidden field
-    $('#userName').val(user.name); //hidden field
-    $('#userPhone').val(user.phone); //hidden field
-
-    // set dates for the movement
-    let endDate = new Date().toLocaleString().split(',')[0];
-    let startDate = user.lastUpdate;
-
-    $('#startDate').val(startDate);
-    $('.startDate').text(startDate);
-    $('#endDate').val(endDate);
-    $('.endDate').text(endDate);
-
-
-    projector.classList = 'locations';
-    window.document.title = "Enter Stats for "+movement.name;
   }
 //SUMMARY!-----------------------------------------------------------------
   else if(hash.startsWith('#summary')) {
@@ -291,9 +296,12 @@ async function hashchanged(){
     }
     else {
       location.hash = '#';
-    }  
+    }
   }
-}  
+  else {
+    location.hash = '#';
+  }
+}
 //PROCESS ONBOARDING FORM
 async function processOnboardForm(e) {
   if (e.preventDefault) e.preventDefault();
@@ -326,7 +334,7 @@ async function processOnboardForm(e) {
 
     if(user.locations.length == 0) {
       alert('Select a movement friend!');
-      return
+      return;
     }
 
     //we send in and add a new user
@@ -345,9 +353,8 @@ async function processOnboardForm(e) {
       }
       else {
         alert("I'm sorry that phone number is not yet registered! Go ahead and check 'Register as new user' and enter your name. \n\n OR if you entered your number wrong, please try again :)")
-        return
+        return;
       }
-      
     }
   }
   //attempt to load information from db
@@ -365,7 +372,7 @@ async function processOnboardForm(e) {
 
   //after all that we set the user and return
   location.hash = "#";
-  
+
   //clear form
   phoneEl.value = '';
   nameEl.value = '';
@@ -390,7 +397,7 @@ function processLocationForm(submit) {
   if(!submit && user.movements.length != movement_num + 1){
     goToNextMovement();
   }
-  
+
   //clear form
   $('input[type="checkbox"]').prop('checked', false);
   $('input[type="number"]').val(0);
@@ -406,7 +413,7 @@ async function submitLocationForm(){
 
   startSpin();
   var url  =  window.indicatorAppURL;
-  
+
   //submit everything - we can do this in one go.
   var jqxhr = await $.ajax({
     url: url,
@@ -446,7 +453,7 @@ function goToNextMovement() {
 function startSpin() {
   document.getElementById('spin-container').classList = "spin";
 }
-function stopSpin() { 
+function stopSpin() {
   document.getElementById('spin-container').classList = "";
 }
 
@@ -494,7 +501,7 @@ async function setTextReminder(){
 $( setToolTips());
 
 function setToolTips() {
-  var targets = $( '[rel~=tooltip]' ), 
+  var targets = $( '[rel~=tooltip]' ),
     target  = false,
     tooltip = false,
     title   = false;
