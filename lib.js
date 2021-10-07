@@ -169,6 +169,7 @@ async function hashchanged(){
   if(hash.startsWith('#reset')) {
     if(confirm('reset your local data?  You can still log back into your account afterward')){
       localStorage.removeItem('SC_user');
+      window.user = null;
       location.hash = '#';
       location.reload();
     }
@@ -201,7 +202,7 @@ async function hashchanged(){
     if(window.user){
       $('#notification').remove();
       $('#locations').prepend('<div id="notification">You visited an onboarding link. Click <a onclick="delete window.user; localStorage.removeItem(\'SC_user\'); $(\'#notification\').remove();" href="'+hash+'">here</a> to set up!</div>');
-      location.hash = "";
+      location.hash = "#";
       return;
     }
     $('#movements').empty();
