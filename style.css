@@ -120,7 +120,7 @@ h1 {
 	margin-right: -2rem;
 	background-color: var(--medium-gray);
 	color: white;
-	padding: 1rem;
+	padding: 1rem 2rem;
 }
 /*  SPINNER  */
 @keyframes spin {
@@ -313,6 +313,10 @@ input:checked + .round {
   border: 1px gray solid;
   border-radius: 2rem;
   border-bottom-right-radius: 0;
+}
+.tooLow:hover:after {
+  opacity: 0.2;
+  transition: .2s;
 }
 .row {
 	display: flex;
