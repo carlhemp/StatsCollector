@@ -238,14 +238,9 @@ button.white {
 	background-color: white;
 	color: black;
 }
-button.white:active,
-button.white:hover {
-	background-color: lightgray;
-}
 button:active,
 button:hover {
-  background-color: #e59e06;
-  border-color: #c28605;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2) 0 0);
 }
 .screen {
 	position: fixed;
