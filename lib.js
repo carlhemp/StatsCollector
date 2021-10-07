@@ -133,22 +133,28 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   $('#statsList').on("change", function(e) {
     if(e.target && e.target.nodeName == "INPUT") {
+      //get all question values
+      let varVals = {};
+      for(question of $('#statsList input')){
+        varVals[question.id] = question.value;
+      }
 
-      //select all previous inputs and toggle on a notice/toolip if less than except for HS
-      let SC = parseInt($('#spiritualConvo').val());
-      let PE = parseInt($('#personalEvang').val());
-      let PED = parseInt($('#personalEvangDec').val());
-      if((SC < PE) || (SC < PED)){
-        $('#spiritualConvo').parent().addClass('tooLow');
-      }
-      else {
-        $('#spiritualConvo').parent().removeClass('tooLow');
-      }
-      if(PE < PED){
-        $('#personalEvang').parent().addClass('tooLow');
-      }
-      else {
-        $('#personalEvang').parent().removeClass('tooLow');
+      //do the thing
+      for(question of Object.keys(user.questionRels)){
+        let tooLow = 0;
+         
+        //checking if any are greater than the question
+        for(relVar of user.questionRels[question]){
+          tooLow += (parseInt(varVals[question]) < parseInt(varVals[relVar]));
+        }
+        if(document.getElementById(question)){
+          if(tooLow){
+            document.getElementById(question).parentElement.classList.add('tooLow');
+          }
+          else {
+            document.getElementById(question).parentElement.classList.remove('tooLow');
+          }
+        }
       }
     }
   });
@@ -257,11 +263,17 @@ async function hashchanged(){
 
       let statsListContent='';
       for(question of strategy.questions){
-       statsListContent += `<div>
+        let helpText='';
+        if(user.questionRels[question.id]){
+          helpText = user.questionRels[question.id];
+          helpText = helpText.map(vari => strategy.questions.filter(item => item.id == vari)[0].name);
+          helpText = helpText.join(', ').replace(/, ([^,]*)$/, ', and $1');
+        }
+        statsListContent += `<div>
           <label for="${question.id}">${question.name}</label>
           <span rel="tooltip" title="${question.description.replace(/"/g,"'")}">i</span>
         </div>
-        <div>
+        <div data-over="should be as high as ${helpText}">
           <span class="dec button">-</span>
           <input id="${question.id}" name="${question.id}" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
           <span class="inc button">+</span>

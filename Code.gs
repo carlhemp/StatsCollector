@@ -34,6 +34,8 @@ function doGet(e){
         var USER_SHEET = "Users";
 //  Enter sheet name where Users are
         var USER_SHEET_UPDATE = "UsersLastUpdate";
+//  Enter sheet name where Question Relatioships are
+        var QUESTION_RELS = "QuestionRels";
 
 var SCRIPT_PROP = PropertiesService.getScriptProperties(); // new property service
 
@@ -76,7 +78,7 @@ function getStrategies(strategiesList) {
   let sheet = doc.getSheetByName(STRATEGY_SHEET);
   let strategies = sheet.getRange(1,2,sheet.getLastRow(),sheet.getLastColumn()).getValues();
   Logger.log(strategiesList);
-
+  
   let object = {};
   Logger.log(strategies.length);
   for(j = 0; j < strategies[0].length -1; j++){ //Vertically arranged sheet, so we are iterating over the columns
@@ -102,6 +104,20 @@ function getStrategies(strategiesList) {
   }
   Logger.log(JSON.stringify(object));
   return object;
+}
+
+function getQuestionRels(){
+  let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
+  let questionRelsSheet = doc.getSheetByName(QUESTION_RELS);
+  let questionRelsList = questionRelsSheet.getRange(2,1, questionRelsSheet.getLastRow(),2).getValues(); 
+  let questionRels = {};
+  for(row of questionRelsList){
+    if(row[0].trim()!=""){
+      questionRels[row[1]]=row[0].split(', ');
+    }
+  }
+  Logger.log(JSON.stringify(questionRels));
+  return questionRels;
 }
 
 function getCarl(){
@@ -152,9 +168,10 @@ function sendUserInfo(e) {
     let user = getUser(e.parameter.userPhone);
     
     if(user){
+      let questionRels = getQuestionRels();
       let strategies = getStrategies([...new Set(user[2].map(mvmt => mvmt.strategy))]); //get's the unique strategies as a list
       return ContentService
-            .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'movementStrategies': strategies,'lastUpdate':user[3]}}))
+            .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'movementStrategies': strategies,'questionRels': questionRels,'lastUpdate':user[3]}}))
             .setMimeType(ContentService.MimeType.JSON);
     }
     else {

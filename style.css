@@ -274,7 +274,6 @@ button:hover {
 	flex-shrink: 0;
 }
 
-
 .fl {
 	float: left;
 }
@@ -301,11 +300,24 @@ input:checked + .round {
 .clicky {
 	cursor: pointer;
 }
+.tooLow {
+	position: relative;
+}
 .tooLow:after {
-	content: 'should be higher than following #s';
-	font-size: small;
-	color: red;
-	font-style: italic;
+  position: absolute;
+  width: 50vw;
+  left: -60vw;
+  bottom: 1rem;
+  padding: 1rem;
+	content: attr(data-over);
+  font-size: small;
+  color: red;
+  background: white;
+  font-style: italic;
+  overflow-wrap: break-word;
+  border: 1px gray solid;
+  border-radius: 2rem;
+  border-bottom-right-radius: 0;
 }
 .row {
 	display: flex;
