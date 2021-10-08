@@ -39,12 +39,27 @@ function doGet(e){
 
 var SCRIPT_PROP = PropertiesService.getScriptProperties(); // new property service
 
-function getMovements(movementsList, purpose) {
+function updateScriptProperties(){
+  setMovementsScriptProperty();
+  setStrategiesScriptProperty();
+  setQuestionRelsScriptProperty();
+  setUserScriptProperty();
+}
+
+function setMovementsScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(MOVEMENT_SHEET);
-  let movements = sheet.getRange(2,1,sheet.getLastRow() - 1,sheet.getLastColumn()).getValues();
+  let movements = sheet.getRange(2,1,sheet.getLastRow() - 2,sheet.getLastColumn()).getValues();
+
+  SCRIPT_PROP.setProperty("movements", JSON.stringify(movements));
+}
+
+function getMovements(movementsList, purpose) {
+  if(purpose == 'summary'){ //need this to be fresh - otherwise we're good.
+    setMovementsScriptProperty();
+  }
+  let movements = JSON.parse(SCRIPT_PROP.getProperty("movements"));
   movementsList = movementsList.map(mvmnt => parseInt(mvmnt));
-  Logger.log(movementsList);
 
   let object = [];
   for(movement of movements){
@@ -70,14 +85,17 @@ function getMovements(movementsList, purpose) {
   }
   return object;
 }
-function getCru(){
-  getStrategies(['Cru','High School']);
-}
-function getStrategies(strategiesList) {
+
+function setStrategiesScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(STRATEGY_SHEET);
   let strategies = sheet.getRange(1,2,sheet.getLastRow(),sheet.getLastColumn()).getValues();
-  Logger.log(strategiesList);
+
+  SCRIPT_PROP.setProperty("strategies", JSON.stringify(strategies));
+}
+
+function getStrategies(strategiesList) {
+  let strategies = JSON.parse(SCRIPT_PROP.getProperty('strategies'));
   
   let object = {};
   Logger.log(strategies.length);
@@ -105,11 +123,15 @@ function getStrategies(strategiesList) {
   Logger.log(JSON.stringify(object));
   return object;
 }
-
-function getQuestionRels(){
+function setQuestionRelsScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let questionRelsSheet = doc.getSheetByName(QUESTION_RELS);
   let questionRelsList = questionRelsSheet.getRange(2,1, questionRelsSheet.getLastRow(),2).getValues(); 
+  
+  SCRIPT_PROP.setProperty("questionRelsList", JSON.stringify(questionRelsList));
+}
+function getQuestionRels(){
+  let questionRelsList = JSON.parse(SCRIPT_PROP.getProperty('questionRelsList'));
   let questionRels = {};
   for(row of questionRelsList){
     if(row[0].trim()!=""){
@@ -121,16 +143,18 @@ function getQuestionRels(){
 }
 
 function getCarl(){
-  Logger.log(JSON.stringify(getUser(8453320550)));
+  Logger.log(JSON.stringify(getUser('8453320550')));
 }
 
-function getUser(phone){
-  // next set where we write the data - you could write to multiple/alternate destinations
+function setUserScriptProperty(){
   var doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   var sheet = doc.getSheetByName(USER_SHEET_UPDATE);
-  
-  //for each item in list of users, check if it is the same as the one we received.
   let users = sheet.getRange(2,1, sheet.getLastRow(), 4).getValues();
+  SCRIPT_PROP.setProperty("users", JSON.stringify(users));
+}
+function getUser(phone){
+  //for each item in list of users, check if it is the same as the one we received.
+  let users = JSON.parse(SCRIPT_PROP.getProperty('users'));
   let user = false;     
   for(i in users){
     if(users[i][0] == phone) {
@@ -138,9 +162,10 @@ function getUser(phone){
       break;
     }
   }
+  Logger.log(JSON.stringify(user))
   if(user){
     user[2] = getMovements(user[2].split(','),'user_info');
-    user[3] = Utilities.formatDate(user[3], "GMT+1", "M/d/yyyy");
+    user[3] = Utilities.formatDate(new Date(user[3]), "GMT+1", "M/d/yyyy");
   }
   return user;
 }
@@ -365,6 +390,10 @@ function saveForm(e) {
       // more efficient to set values as [][] array than individually
       sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
     }
+    lock.releaseLock();
+
+    setUserScriptProperty();
+
     //Get the results from our movements to send to the summary page
     SpreadsheetApp.flush();
     let movements = e.parameters.movementId;
@@ -375,6 +404,8 @@ function saveForm(e) {
     .createTextOutput(JSON.stringify({"result":"success", "number": e.parameters.movementId.length,"groupNum": groupNum,'orig_request':e}))
           .setMimeType(ContentService.MimeType.JSON);
   } catch(error){
+    lock.releaseLock();
+
     // if error return this
     return ContentService
           .createTextOutput(JSON.stringify({"result":"error", "error": error,'data': e}))

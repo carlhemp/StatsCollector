@@ -30,7 +30,14 @@ if ('serviceWorker' in navigator) {
 
 //HELPER FUNCTIONS FOR USER
 function getUser(){
-  return JSON.parse(localStorage.getItem('SC_user'));
+  try{
+    return JSON.parse(localStorage.getItem('SC_user'));
+  }
+  catch(error) {
+    console.log(error, "Clearing local storage");
+    localStorage.removeItem('SC_user');
+    return false;
+  }
 }
 function setUser(user){
   localStorage.setItem('SC_user', JSON.stringify(user));
