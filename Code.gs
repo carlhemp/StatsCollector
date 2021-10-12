@@ -253,6 +253,7 @@ function saveUser(e) {
       // more efficient to set values as [][] array than individually
       sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
       SpreadsheetApp.flush();
+      setUserScriptProperty();
       let user = getUser(e.parameter.userPhone);
       return ContentService
             .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'lastUpdate':user[3]}}))
@@ -323,6 +324,7 @@ function updateUser(e) {
         // more efficient to set values as [][] array than individually
         sheet.getRange(Number(i)+2, 1, 1, row.length).setValues([row]);
         SpreadsheetApp.flush();
+        setUserScriptProperty();
         let user = getUser(e.parameter.userPhone);
         return ContentService
               .createTextOutput(JSON.stringify({"result":"success", "user": {'phone':user[0],'name':user[1],'movements':user[2],'lastUpdate':user[3]}}))
@@ -390,6 +392,7 @@ function saveForm(e) {
       // more efficient to set values as [][] array than individually
       sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
     }
+
     lock.releaseLock();
 
     setUserScriptProperty();
