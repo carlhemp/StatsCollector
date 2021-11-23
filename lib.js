@@ -112,6 +112,14 @@ document.addEventListener("DOMContentLoaded", function(){
 
   window.formSubs = {};
 
+  document.body.addEventListener("click", function (e) {
+    if(document.body.classList.contains('summary')){
+      party.confetti(e, {
+          count: party.variation.range(80, 100)
+        });
+    }
+  });
+
   //setup form listeners.
   var form = document.getElementById('onboard-form');
   if (form.attachEvent) {
@@ -277,11 +285,11 @@ async function hashchanged(){
           helpText = helpText.map(vari => strategy.questions.filter(item => item.id == vari)[0].name);
           helpText = helpText.join(', ').replace(/, ([^,]*)$/, ', and $1');
         }
-        statsListContent += `<div>
+        statsListContent += `<div class="statsListLeft">
           <label for="${question.id}">${question.name}</label>
           <span rel="tooltip" title="${question.description.replace(/"/g,"'")}">i</span>
         </div>
-        <div data-over="should be as high as ${helpText}">
+        <div class="statsListRight" data-over="should be as high as ${helpText}">
           <span class="dec button">-</span>
           <input id="${question.id}" name="${question.id}" type="number" min="0" max="100" step="1" inputmode="numeric" value="0">
           <span class="inc button">+</span>
@@ -325,6 +333,25 @@ async function hashchanged(){
       $('#personalEvangDecSum').text(window.groupNum.personalEvangDec+(window.groupNum.personalEvangDec != 1 ? ' people' : ' person' ));
       projector.classList = 'summary';
       window.document.title = "Stats Summary";
+      console.log(window.groupNum);
+      let time = 500;
+
+      function doSetTimeout(stat,time) {
+        setTimeout(function(){
+          console.log(time,stat,'#'+stat);
+          party.confetti(document.getElementById(stat+'Sum').parentElement.previousElementSibling, {
+            count: party.variation.range(90, 200)
+          })
+        }, time);
+      }
+
+      for(stat of  Object.keys(window.groupNum).sort(function(a,b){return window.groupNum[b]-window.groupNum[a]})){
+        console.log(stat);
+        if(document.getElementById(stat+'Sum') && window.groupNum[stat] != 0){
+          doSetTimeout(stat,time);
+          time += 2000;
+        }
+      }
       window.groupNum = null;
     }
     else {

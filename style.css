@@ -1,10 +1,7 @@
 * {
   box-sizing: border-box;
   transition: all .25s; 
-  font-family: sans-serif;
-  /*font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-"Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
-"Droid Sans", "Helvetica Neue", sans-serif;*/
+	font-family: 'Source Sans Pro', sans-serif;
 }
 :root {
   --main-color: #FFCF07;
@@ -15,6 +12,7 @@
 }
 body {
 	overflow: hidden;
+	font-size: 16px;
 }
 button,
 input { /* 1 */
@@ -44,14 +42,16 @@ button {
   outline: none;
   border: none;
   text-align: left;
+  font: inherit;
 }
 input,
 select {
-  font-weight: bold;
   padding: 4px 9px;
   display: inline-block;
   border: 2px solid var(--medium-gray);
   border-radius: 2px;
+  font: inherit;
+  font-weight: bold;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -109,11 +109,22 @@ h1 {
 }
 #statsList {
  display: grid;
- grid-template-columns: 1fr 100px;
+ grid-template-columns: 1fr 8rem;
  grid-gap: 1rem;
 }
 #statsList input {
 	width: 2.3rem;
+}
+.statsListLeft {
+	white-space: nowrap;
+	overflow: hidden;
+}
+.statsListLeft label {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	max-width: calc(100% - 2.2rem);
+	display: inline-block;
+	vertical-align: middle;
 }
 #notification {
 	margin-left: -2rem;
@@ -226,8 +237,7 @@ button {
 	touch-action: manipulation;
 	border: 1px solid transparent;
 	white-space: nowrap;
-	padding: 4px 14px;
-	line-height: 1.8125;
+	padding: 0px 14px;
 	border-radius: 2px;
 	-webkit-user-select: none;
 	-moz-user-select: none;
@@ -460,7 +470,17 @@ select {
 }
 /*+/- Buttons*/
 /*TOOLTIP CSS*/
-#statsList span,
+.statsListRight span {
+  line-height: 2;
+  text-align: center;
+  text-shadow: 0 1px rgba( 0, 0, 0, .25 );
+  color: var(--medium-gray);
+  border-radius: 50%;
+  border: 1px solid var(--medium-gray);
+  display: inline-block;
+  width: 2rem;
+  margin: 0 .3rem;
+}
 span[rel="tooltip"] {
   font-size: .8rem;
   line-height: 1.6;

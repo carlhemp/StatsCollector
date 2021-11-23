@@ -11,7 +11,8 @@ var prefetchedURLs = [
   'icon512.png',
   'mstile-150x150.png',
   'safari-pinned-tab.svg',
-  'jquery-3.4.0.min.js'
+  'jquery-3.4.0.min.js',
+  'party.min.js'
   /*'lib.js',
   'sw.js',
   'style.css',
