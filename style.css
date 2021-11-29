@@ -550,3 +550,7 @@ span[rel="tooltip"] {
 	}
 }
 
+#party-js-container * {
+  transition: none !important;
+}
+

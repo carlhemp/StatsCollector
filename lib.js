@@ -340,7 +340,7 @@ async function hashchanged(){
         setTimeout(function(){
           console.log(time,stat,'#'+stat);
           party.confetti(document.getElementById(stat+'Sum').parentElement.previousElementSibling, {
-            count: party.variation.range(90, 200)
+            count: party.variation.range(90, 120)
           })
         }, time);
       }
