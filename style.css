@@ -444,6 +444,9 @@ select {
   height: 100vh;
   width: 100vw;
 }
+#strategyWelcomeText {
+	white-space: pre-wrap;
+}
 .day-of-week {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
