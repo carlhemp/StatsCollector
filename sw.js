@@ -12,7 +12,8 @@ var prefetchedURLs = [
   'mstile-150x150.png',
   'safari-pinned-tab.svg',
   'jquery-3.4.0.min.js',
-  'party.min.js'
+  'party.min.js',
+  'masking-input.js'
   /*'lib.js',
   'sw.js',
   'style.css',

@@ -31,7 +31,7 @@
 			
 			<form class="last-el-bottom" id="onboard-form">
         <div class="movementInfo">
-					<p>Select the movements below that you would like to add stats for OR click <a href="#onboarding">here</a> to login.  </p>
+					<p>Select the movements below that you would like to add OR click <a href="#onboarding">here</a> to login.  </p>
 
 					<h2>Movements</h2>
 
@@ -39,16 +39,32 @@
 					</div>
 				<br>
 				<br>
-				<small><b>Associate with my account</b></small>
+				<b>Associate with my account</b>
 				</div>
 				<div class="loginInfo">
-					<small><b>If you have previously registered, go ahead and enter your phone number!</b> <br><br> If you haven't yet registered, you'll need to open the custom link that was sent to you.</small>
+					<b>If you have previously registered, go ahead and enter your phone number!</b> <br><br> If you haven't yet registered, you'll need to open the custom link that was sent to you.
 				</div>
-	  		<input id="regUserPhone" name="regUserPhone" type="tel" required placeholder="Phone Number">
-	  		<div class="movementInfo">
-		  		<input name="register" id="register" type="checkbox" onchange="toggleRegister();">
-		  		<label for="register">Register as new user</label>
-					<input id="regUserName" name="regUserName" type="text" placeholder="First and Last Name" style="width: 100%; display: none;">
+				<div>
+					<label for="regUserPhone">Phone Number</label><br>
+		  		<input id="regUserPhone" name="regUserPhone" class="masked" required placeholder="(XXX) XXX-XXXX" pattern="\(\d{3}\) \d{3}-\d{4}" title="(123) 456-7890">
+				</div>
+	  		<div class="movementInfo accountInfo">
+	  			<div>
+			  		<input name="register" id="register" type="checkbox" onchange="toggleRegister();">
+			  		<label for="register">Register as new user</label>
+			  		<div class="userToggle">
+				  		<label for="regUserName">First and Last Name</label><br>
+							<input id="regUserName" name="regUserName" type="text" placeholder="Your name" style="width: 100%;">
+						</div>
+					</div><br>
+					<div>
+						<input name="staff" id="staff" type="checkbox" onchange="toggleStaff();">
+			  		<label for="staff">I'm on staff with Cru</label>
+			  		<div class="staffToggle">
+				  		<label for="staffAcct">Staff Acct. #</label><br>
+							<input id="staffAcct" name="staffAcct" type="tel" class="masked" pattern="[0-9]{7}" placeholder="XXXXXXX" title="enter your staff account number">
+						</div>
+					</div>
 				</div>
 				<div>
 					<input id="ua" name="ua" required type="checkbox" >
@@ -163,6 +179,7 @@
 			<div id="spinner">
 			</div>
 		</div>
+  	<script src="masking-input.js" data-autoinit="true"></script>
 
 	</body>
 </html>

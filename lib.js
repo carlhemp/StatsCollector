@@ -3,13 +3,23 @@ window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu
 function toggleRegister(){
   if($('#register')[0].checked){
     $('#regUserName').prop('required',true);
-    $('#regUserName').show();
+    $('.userToggle').show();
     $('#formSubmit span').show();
   }
   else{
     $('#regUserName').removeAttr('required');
-    $('#regUserName').hide();
+    $('.userToggle').hide();
     $('#formSubmit span').hide();
+  }
+}
+function toggleStaff(){
+  if($('#staff')[0].checked){
+    $('#staffAcct').prop('required',true);
+    $('.staffToggle').show();
+  }
+  else{
+    $('#staffAcct').removeAttr('required');
+    $('.staffToggle').hide();
   }
 }
 //SERVICE WORKER
@@ -109,6 +119,11 @@ async function requestUser(userPhone, spin=true){
 document.addEventListener("DOMContentLoaded", function(){
   window.addEventListener("hashchange", hashchanged, false);
   hashchanged();
+
+  //clean up masked input fields.
+  for(elment of document.getElementsByClassName('masked')){
+    elment.dispatchEvent(new Event('keyup'));
+  }
 
   window.formSubs = {};
 
@@ -222,7 +237,8 @@ async function hashchanged(){
     }
     $('#movements').empty();
     $('input[type="checkbox"]').prop('checked', false);
-    $('#regUserName').hide();
+    $('.userToggle').hide();
+    $('.staffToggle').hide();
     $('#formSubmit span').hide();
 
     let movements = [];
@@ -246,6 +262,7 @@ async function hashchanged(){
       $('.movementInfo').hide();
       $('.loginInfo').show();
       toggleRegister();
+      toggleStaff();
     }
 
     projector.classList = 'onboarding';
@@ -369,6 +386,7 @@ async function processOnboardForm(e) {
   let user = {};
   let nameEl = document.getElementById('regUserName');
   let phoneEl = document.getElementById('regUserPhone');
+  let accountEl = document.getElementById('staffAcct');
   let register = document.getElementById('register').checked;
 
   user.name = nameEl.value;
@@ -436,6 +454,7 @@ async function processOnboardForm(e) {
   //clear form
   phoneEl.value = '';
   nameEl.value = '';
+  accountEl.value = '';
   $('input[type="checkbox"]').prop('checked', false);
 
   return false;
@@ -461,6 +480,7 @@ function processLocationForm(submit) {
   //clear form
   $('input[type="checkbox"]').prop('checked', false);
   $('input[type="number"]').val(0);
+  $('input[type="tel"]').val(0);
 
   //clear notification
   $('#notification').remove();

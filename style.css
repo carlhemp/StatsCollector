@@ -55,7 +55,6 @@ select {
   border: 2px solid var(--medium-gray);
   border-radius: 2px;
   font: inherit;
-  font-weight: bold;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -236,7 +235,7 @@ button {
 	background-color: var(--main-color);
 	border-color: var(--main-color);
 	display: inline-block;
-	font-weight: bold;
+	font-weight: 600;
 	text-align: center;
 	touch-action: manipulation;
 	border: 1px solid transparent;
@@ -252,6 +251,8 @@ button.white {
 	background-color: white;
 	color: black;
 }
+.button:active,
+.button:hover,
 button:active,
 button:hover {
   background-image: linear-gradient(rgba(0, 0, 0, 0.2) 0 0);
@@ -380,6 +381,7 @@ input:checked + .round {
 }
 h2 {
 	color: var(--main-color);
+	font-weight: 600;
 }
 h4 {
 	color: var(--medium-gray);
@@ -561,3 +563,36 @@ span[rel="tooltip"] {
   transition: none !important;
 }
 
+#staffAcct, #staffAcctMask {
+	letter-spacing: 0.3em;
+}
+
+.accountInfo input[type="checkbox"]:checked + label  {  
+	text-decoration: underline;
+}
+
+
+/* optional */
+.shell {
+  position: relative;
+  line-height: 1; }
+  .shell span {
+    position: absolute;
+    left: 12px;
+    top: 2px;
+    color: #ccc;
+    pointer-events: none;
+    z-index: -1; }
+    .shell span i {
+      font-style: normal;
+      /* any of these 3 will work */
+      color: transparent;
+      opacity: 0;
+      visibility: hidden; }
+
+input.masked,
+.shell span {
+  background-color: transparent;
+  text-transform: uppercase; }
+
+/*# sourceMappingURL=masking-input.css.map */
