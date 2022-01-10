@@ -58,7 +58,7 @@ function updateScriptProperties(){
   }
   Logger.log(store_size);
   if(store_size > 480000){
-    GmailApp.sendEmail('carl.hempel@cru.org','Server script properties are at 480kb!','You should check it out: \n\nhttps://docs.google.com/spreadsheets/d/1a0Qh9fVs4aWumbsaxT8zffP3OZegXNdnvcyW88fFWIQ/edit#gid=1826317799');
+    GmailApp.sendEmail('carl.hempel@cru.org','Server script properties are at 480kb!','You should check it out: \n\nhttps://docs.google.com/spreadsheets/d/'+SCRIPT_PROP.getProperty("key"));
   }
 }
 
