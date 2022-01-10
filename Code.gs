@@ -28,6 +28,8 @@ function doGet(e){
         var RESPONSE_SHEET = "Responses";
 //  Enter sheet name where Movements are
         var MOVEMENT_SHEET = "Movements";
+//  Enter sheet name where Teams are
+        var TEAM_SHEET = "Teams";
 //  Enter sheet name where Strategies are
         var STRATEGY_SHEET = "Strategies";
 //  Enter sheet name where Users are
@@ -44,14 +46,51 @@ function updateScriptProperties(){
   setStrategiesScriptProperty();
   setQuestionRelsScriptProperty();
   setUserScriptProperty();
+  setTeamsScriptProperty();
+
+  // Get multiple script properties in one call, then log them all.
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var data = scriptProperties.getProperties();
+  var store_size = 0;
+  for (var key in data) {
+    Logger.log('Key: %s, Value: %s', key, data[key].length);
+    store_size += data[key].length
+  }
+  Logger.log(store_size);
+  if(store_size > 480000){
+    GmailApp.sendEmail('carl.hempel@cru.org','Server script properties are at 480kb!','You should check it out: \n\nhttps://docs.google.com/spreadsheets/d/1a0Qh9fVs4aWumbsaxT8zffP3OZegXNdnvcyW88fFWIQ/edit#gid=1826317799');
+  }
 }
 
 function setMovementsScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(MOVEMENT_SHEET);
-  let movements = sheet.getRange(2,1,sheet.getLastRow() - 2,sheet.getLastColumn()).getValues();
+  
+  //this is because .getLastRow() doesn't work when there are formulas in other columns
+  let columnA = sheet.getRange("A1:A").getValues();
+  let lastRow=0;
+  for(cell of columnA){
+    if(cell != ""){
+      lastRow += 1;
+    }
+    else {
+      break;
+    }
+  }
+  let movements = sheet.getRange(2,1,lastRow - 2,sheet.getLastColumn()).getValues();
+  let moveObjs = {};
+  for(movement of movements){
+    let moveOb = {};
+    moveOb.teamID=movement[1];
+    moveOb.teamName=movement[2];
+    moveOb.strategy=movement[3];
+    moveOb.name=movement[4];
 
-  SCRIPT_PROP.setProperty("movements", JSON.stringify(movements));
+    moveObjs[movement.shift()]=moveOb;
+  }
+  Logger.log(JSON.stringify(moveObjs));
+
+  SCRIPT_PROP.setProperty("movements", moveObjs);
 }
 
 function getMovements(movementsList, purpose) {
@@ -85,7 +124,13 @@ function getMovements(movementsList, purpose) {
   }
   return object;
 }
+function setTeamsScriptProperty(){
+  let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
+  let sheet = doc.getSheetByName(TEAM_SHEET);
+  let teams = sheet.getRange(2,1,sheet.getLastRow() - 2,sheet.getLastColumn()).getValues();
 
+  SCRIPT_PROP.setProperty("teams", JSON.stringify(teams));
+}
 function setStrategiesScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(STRATEGY_SHEET);
