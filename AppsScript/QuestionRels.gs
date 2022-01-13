@@ -1,19 +1,23 @@
 function setQuestionRelsScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
-  let questionRelsSheet = doc.getSheetByName(QUESTION_RELS);
-  let questionRelsList = questionRelsSheet.getRange(2,1, questionRelsSheet.getLastRow(),2).getValues(); 
+  let sheet = doc.getSheetByName(QUESTION_RELS);
   
-  SCRIPT_PROP.setProperty("questionRelsList", JSON.stringify(questionRelsList));
+  let questionRelsList = sheet.getRange(2,1, sheet.getLastRow(),3).getValues(); 
+  let questionObjs = {};
+  //for each row in the 2d array from getValues();
+  for(question of questionRelsList){
+    let questionOb = {};
+    questionOb.notCumulative=Boolean(question[2]);
+    questionOb.lessThan=question[0].split(',');
+
+    questionObjs[question[1]]=questionOb;
+  }
+
+  SCRIPT_PROP.setProperty("questionRelsList", JSON.stringify(questionObjs));
 }
 
 function getQuestionRels(){
   let questionRelsList = JSON.parse(SCRIPT_PROP.getProperty('questionRelsList'));
-  let questionRels = {};
-  for(row of questionRelsList){
-    if(row[0].trim()!=""){
-      questionRels[row[1]]=row[0].split(', ');
-    }
-  }
-  Logger.log(JSON.stringify(questionRels));
-  return questionRels;
+  
+  return questionRelsList;
 }

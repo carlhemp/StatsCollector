@@ -2,31 +2,23 @@ function setMovementsScriptProperty(){
   let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
   let sheet = doc.getSheetByName(MOVEMENT_SHEET);
   
-  //this is because .getLastRow() doesn't work when there are formulas in other columns
-  let columnA = sheet.getRange("A1:A").getValues();
-  let lastRow=0;
-  for(cell of columnA){
-    if(cell != ""){
-      lastRow += 1;
-    }
-    else {
-      break;
-    }
-  }
-  let movements = sheet.getRange(2,1,lastRow - 2,sheet.getLastColumn()).getValues();
+  let movements = sheet.getRange(2,1,getLastRow(sheet) - 2,sheet.getLastColumn()).getValues();
   let moveObjs = {};
+  //for each row in the 2d array from getValues();
   for(movement of movements){
     let moveOb = {};
-    moveOb.teamID=movement[1];
-    moveOb.teamName=movement[2];
-    moveOb.strategy=movement[3];
-    moveOb.name=movement[4];
+    moveOb.tID=movement[1];
+    moveOb.strat=movement[2];
+    moveOb.name=movement[3];
+    moveOb.fb=movement[4];
+    moveOb.g1=movement[5];
+    moveOb.g2=movement[6];
+    moveOb.g3=movement[7];
 
-    moveObjs[movement.shift()]=moveOb;
+    moveObjs[movement.shift().toString()]=moveOb;
   }
-  Logger.log(JSON.stringify(moveObjs));
 
-  SCRIPT_PROP.setProperty("movements", moveObjs);
+  SCRIPT_PROP.setProperty("movements", JSON.stringify(moveObjs));
 }
 
 function getMovements(movementsList, purpose) {
@@ -34,28 +26,20 @@ function getMovements(movementsList, purpose) {
     setMovementsScriptProperty();
   }
   let movements = JSON.parse(SCRIPT_PROP.getProperty("movements"));
-  movementsList = movementsList.map(mvmnt => parseInt(mvmnt));
+  movementsList = movementsList.map(mvmnt => mvmnt.toString());
 
   let object = [];
-  for(movement of movements){
-    if(movementsList.includes(parseInt(movement[0]))){
-      switch(purpose) {
-        case 'onboard': {
-          let mvmnt = {};
-          mvmnt.id = movement[0];    //id
-          mvmnt.name = movement[5];  //name
-          object.push(mvmnt);
-        }break;
-        case 'user_info': {
-          let mvmnt = {};
-          mvmnt.id = movement[0];       //id
-          mvmnt.name = movement[5];     //name
-          mvmnt.strategy = movement[4];  //strategy
-          object.push(mvmnt);
-        }break;
-        case 'summary':
-          object.push([movement[5],movement[6],movement[7],movement[8],movement[9]]);  //summary information
-      }
+  for(mvmntIn of movementsList){
+    if(purpose == 'summary'){                    //we want everything
+      let mvmnt = movements[mvmntIn];
+      mvmnt.id = mvmntIn;
+      object.push(mvmnt);
+    } else {                                    //we only need the id, name, and strategy
+      let mvmnt = {};
+      mvmnt.id = mvmntIn;                         //id
+      mvmnt.name = movements[mvmntIn].name;       //name
+      mvmnt.strat = movements[mvmntIn].strat;  //strategy
+      object.push(mvmnt);
     }
   }
   return object;
