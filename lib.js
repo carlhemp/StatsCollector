@@ -1,4 +1,4 @@
-window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbwMab5-vIt3iyu7LxbswCpgsrAkgUU5-wLsiMjVJr425L9thAGPlHVMNHE3YMn4lTDo/exec";
+window.indicatorAppURL = "https://script.google.com/macros/s/AKfycbzluLRHNFKprWcw6lK5dIgwKw8k-f5XJ4zi1jE-5cjFBdYj8VRAi5fjtY2A2JurzkTM/exec";
 
 function toggleRegister(){
   if($('#register')[0].checked){
@@ -13,7 +13,7 @@ function toggleRegister(){
   }
 }
 function toggleStaff(){
-  if($('#staff')[0].checked){
+  if($('#regUserStaff')[0].checked){
     $('#staffAcct').prop('required',true);
     $('.staffToggle').show();
   }
@@ -60,21 +60,25 @@ async function loadMovements(listOfMovementIDs){
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "movements="+listOfMovementIDs
+    data: "movements="+listOfMovementIDs.join(',')
   }).done(function(data){
-    console.log(data);
+    if(data.result == 'error'){
+      alert(data.error);
+    }
   });
   stopSpin();
   return jqxhr;
 }
 
-async function registerUser(name, phone, locations){
+async function registerUser(name, phone, mvmnts, cat){
   startSpin();
+  phone = phone.replace(/\D/g,'');
+  console.log("registerUser=true&phone="+phone+"&name="+name+"&cat="+cat+"&mvmnts="+JSON.stringify(mvmnts));
   var jqxhr = await $.ajax({
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "registerUser=true&userPhone="+phone+"&userName="+name+"&movementIds="+locations.map(loc => loc.id)
+    data: "registerUser=true&phone="+phone+"&name="+name+"&cat="+cat+"&mvmnts="+JSON.stringify(mvmnts)
   }).done(function(data){
     console.log(data);
     setUser(data.user);
@@ -82,13 +86,14 @@ async function registerUser(name, phone, locations){
   stopSpin();
   return jqxhr;
 }
-async function updateUser(phone, locations){
+async function updateUser(phone, mvmnts){
   startSpin();
+  phone = phone.replace(/\D/g,'');
   var jqxhr = await $.ajax({
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "updateUser=true&userPhone="+phone+"&movementIds="+locations.map(loc => loc.id)
+    data: "updateUser=true&phone="+phone+"&mvmnts="+JSON.stringify(mvmnts)
   }).done(function(data){
     console.log(data);
     setUser(data.user);
@@ -96,20 +101,20 @@ async function updateUser(phone, locations){
   stopSpin();
   return jqxhr;
 }
-async function requestUser(userPhone, spin=true){
+async function requestUser(phone, spin=true){
   if(spin) {startSpin();}
   var jqxhr = await $.ajax({
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "requestUser=true&userPhone="+userPhone
+    data: "requestUser=true&phone="+phone
   }).done(function(data){
     console.log(data);
     let user = data.user;
     setUser(user);
     window.user = user;
-    $('#startDate').val(user.lastUpdate);
-    $('.startDate').text(user.lastUpdate);
+    //$('#startDate').val(user.lastUpdate);
+    //$('.startDate').text(user.lastUpdate);
   });
   if(spin) {stopSpin();}
   return jqxhr;
@@ -130,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function(){
   document.body.addEventListener("click", function (e) {
     if(document.body.classList.contains('summary')){
       party.confetti(e, {
-          count: party.variation.range(80, 100)
+          count: party.variation.range(20, 20)
         });
     }
   });
@@ -174,8 +179,10 @@ document.addEventListener("DOMContentLoaded", function(){
         let tooLow = 0;
          
         //checking if any are greater than the question
-        for(relVar of user.questionRels[question]){
-          tooLow += (parseInt(varVals[question]) < parseInt(varVals[relVar]));
+        if(user.questionRels[question].lessThan) {
+          for(relVar of user.questionRels[question].lessThan){
+            tooLow += (parseInt(varVals[question]) < parseInt(varVals[relVar]));
+          }
         }
         if(document.getElementById(question)){
           if(tooLow){
@@ -288,7 +295,7 @@ async function hashchanged(){
       }
 
       var movement = user.movements[movement_num];
-      let strategy = user.movementStrategies[movement.strategy];
+      let strategy = user.strategies[movement.strat];
       $('.put_name').text(user.name);
 
       document.getElementById('strategyWelcomeText').innerHTML = strategy.welcomeText;
@@ -297,8 +304,8 @@ async function hashchanged(){
       let statsListContent='';
       for(question of strategy.questions){
         let helpText='';
-        if(user.questionRels[question.id]){
-          helpText = user.questionRels[question.id];
+        if(user.questionRels[question.id] && user.questionRels[question.id].lessThan){
+          helpText = user.questionRels[question.id].lessThan;
           helpText = helpText.map(vari => strategy.questions.filter(item => item.id == vari)[0].name);
           helpText = helpText.join(', ').replace(/, ([^,]*)$/, ', and $1');
         }
@@ -344,32 +351,46 @@ async function hashchanged(){
   }
 //SUMMARY!-----------------------------------------------------------------
   else if(hash.startsWith('#summary')) {
-    if(window.groupNum){
-      $('#personalEvangSum').text(window.groupNum.personalEvang+(window.groupNum.personalEvang != 1 ? ' people' : ' person' ));
-      $('#holySpiritPresSum').text(window.groupNum.holySpiritPres+(window.groupNum.holySpiritPres != 1 ? ' people' : ' person' ));
-      $('#personalEvangDecSum').text(window.groupNum.personalEvangDec+(window.groupNum.personalEvangDec != 1 ? ' people' : ' person' ));
+    console.log(window.statSummary)
+    if(window.statSummary){
+      $('.cards').html('');
+
+      for(question of Object.keys(window.statSummary.groupNum)){
+        let num = window.statSummary.groupNum[question];
+        //let text = window.user.strategies[]
+        let card = `<div class="card">
+          <object data="${question.replace(/\d/g,'')}.png" type="image/png" width="80px" height="80px">
+            <img src="genericQ.png" width="80px" height="80px">
+          </object>
+          <p>Your group had</p>
+          <h1 id="${question+'Sum'}">${num}</h1>
+          <p>${window.statSummary.questions[question]}${(num >  0?'!':'')}</p>
+        </div>`;
+
+        $('.cards').append(card);
+      }
       projector.classList = 'summary';
       window.document.title = "Stats Summary";
-      console.log(window.groupNum);
+      console.log(window.statSummary);
       let time = 500;
 
       function doSetTimeout(stat,time) {
         setTimeout(function(){
           console.log(time,stat,'#'+stat);
-          party.confetti(document.getElementById(stat+'Sum').parentElement.previousElementSibling, {
-            count: party.variation.range(90, 120)
+          party.confetti(document.getElementById(stat+'Sum').previousElementSibling, {
+            count: party.variation.range(40, 80)
           })
         }, time);
       }
 
-      for(stat of  Object.keys(window.groupNum).sort(function(a,b){return window.groupNum[b]-window.groupNum[a]})){
+      for(stat of  Object.keys(window.statSummary.groupNum).sort(function(a,b){return window.statSummary.groupNum[b]-window.statSummary.groupNum[a]})){
         console.log(stat);
-        if(document.getElementById(stat+'Sum') && window.groupNum[stat] != 0){
+        if(document.getElementById(stat+'Sum') && window.statSummary.groupNum[stat] != 0){
           doSetTimeout(stat,time);
           time += 2000;
         }
       }
-      window.groupNum = null;
+      window.statSummary.groupNum = null;
     }
     else {
       location.hash = '#';
@@ -385,17 +406,19 @@ async function processOnboardForm(e) {
 
   let user = {};
   let nameEl = document.getElementById('regUserName');
+  let catEl = document.getElementById('regUserStaff');
   let phoneEl = document.getElementById('regUserPhone');
   let accountEl = document.getElementById('staffAcct');
   let register = document.getElementById('register').checked;
 
   user.name = nameEl.value;
-  user.phone = phoneEl.value;
-  user.locations = [];
+  user.phone = phoneEl.value.replace(/\D/g,'');
+  user.cat = (catEl.checked ? 'staff' : '!staff');
+  user.mvmnts = {};
 
 
   let defaultMovements = false;
-  //overwrites whatever is there... if username and phone are same, let's add new movements? If user exists, let's load the user name and phone to preload...
+  //overwrites whatever is there... if username and phone are same, let's add new movements. If user exists, let's load the user name and phone to preload...
   try {
    defaultMovements = location.hash.split('/')[1].split('&').length > 0
   }
@@ -406,18 +429,18 @@ async function processOnboardForm(e) {
   if(defaultMovements){
     $('#movements input').each(function(){
       if(this.checked) {
-        user.locations.push({name: $(this).next().text(), id: this.name})
+        user.mvmnts[this.name] = false;
       }
     });
 
-    if(user.locations.length == 0) {
+    if(Object.keys(user.mvmnts).length == 0) {
       alert('Select a movement friend!');
       return;
     }
 
     //we send in and add a new user
     if(register){
-      let result = await registerUser(user.name, user.phone, user.locations);
+      let result = await registerUser(user.name, user.phone, user.mvmnts, user.cat);
       if(result.result != "success"){
         alert("I'm sorry that phone number is already registered with a name, if it's yours, try unchecking register, and click Setup Device");
         return;
@@ -425,7 +448,7 @@ async function processOnboardForm(e) {
     }
     //OR we overwrite the existing.
     else {
-      let result = await updateUser(user.phone, user.locations);
+      let result = await updateUser(user.phone, user.mvmnts);
       if(result.result == "success"){
         console.log(result)
       }
@@ -502,7 +525,7 @@ async function submitLocationForm(){
     data: Object.values(window.formSubs).join('+')
   }).done(function(data){
     console.log(data);
-    window.groupNum = data.groupNum;
+    window.statSummary = data.summary;
     location.hash = "#summary";
   });
   window.user.lastUpdate = new Date().toLocaleString().split(',')[0];
@@ -564,7 +587,7 @@ async function setTextReminder(){
     url: window.indicatorAppURL,
     method: "GET",
     dataType: "json",
-    data: "updateUser=true&userPhone="+window.user.phone+"&txtReminderTime="+encodeURI(time+' '+Intl.DateTimeFormat().resolvedOptions().timeZone)
+    data: "updateUser=true&phone="+window.user.phone+"&txtReminderTime="+encodeURI(time+' '+Intl.DateTimeFormat().resolvedOptions().timeZone)
   }).done(function(data){
     console.log(data);
     if(data.result=="success"){

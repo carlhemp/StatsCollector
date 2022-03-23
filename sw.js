@@ -1,4 +1,4 @@
-var cacheName = 'stats-collector-cache-1.1';
+var cacheName = 'spotlight-1.0';
 var prefetchedURLs = [
   'icon.png',
   'icon512.png',
