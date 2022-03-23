@@ -15,7 +15,6 @@
 
 var SCRIPT_PROP = PropertiesService.getScriptProperties(); // new property service
 
-
 function setup() {
     var doc = SpreadsheetApp.getActiveSpreadsheet();
     SCRIPT_PROP.setProperty("key", doc.getId());
@@ -23,21 +22,59 @@ function setup() {
 
 function updateScriptProperties(){
   setMovementsScriptProperty();
-  setStrategiesScriptProperty();
   setQuestionRelsScriptProperty();
-  setUserScriptProperty();
+  setStrategiesScriptProperty();
   setTeamsScriptProperty();
+  setUserScriptProperty();
+  setGlobalSumsScriptProperty();
 
   // Get multiple script properties in one call, then log them all.
   var scriptProperties = PropertiesService.getScriptProperties();
   var data = scriptProperties.getProperties();
   var store_size = 0;
   for (var key in data) {
-    Logger.log('Key: %s, Value: %s', key, data[key].length);
+    //Logger.log(data[key])
+    Logger.log('Key: %s, Size: %s', key, data[key].length);
     store_size += data[key].length
   }
   Logger.log(store_size);
   if(store_size > 480000){
     GmailApp.sendEmail('carl.hempel@cru.org','Server script properties are at 480kb!','You should check it out: \n\nhttps://docs.google.com/spreadsheets/d/'+SCRIPT_PROP.getProperty("key"));
   }
+}
+
+function getLastRow(sheet){
+  let columnA = sheet.getRange("A1:A").getValues();
+  let lastRow=0;
+  for(cell of columnA){
+    if(cell != ""){
+      lastRow += 1;
+    }
+    else {
+      break;
+    }
+  }
+  return lastRow;
+}
+
+function validateNumber(number) {
+  return number;
+}
+
+function setGlobalSumsScriptProperty(){
+  let doc = SpreadsheetApp.openById(SCRIPT_PROP.getProperty("key"));
+  let sheet = doc.getSheetByName('Config');
+
+  let globalSums = sheet.getRange("A7:B10").getValues();
+  let globalSumsOb = {};
+  //for each row in the 2d array from getValues();
+  for(globalSum of globalSums){
+    globalSumsOb[globalSum[0]] = globalSum[1]
+  }
+
+  SCRIPT_PROP.setProperty("globalSums", JSON.stringify(globalSumsOb));
+}
+
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
 }

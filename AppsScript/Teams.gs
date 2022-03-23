@@ -11,6 +11,7 @@ function setTeamsScriptProperty(){
     teamOb.teamQ1=team[2];
     teamOb.teamQ2=team[3];
     teamOb.teamQ3=team[4];
+    teamOb.teamSum=team[5];
 
     teamObjs[team.shift()]=teamOb;
   }
@@ -22,9 +23,18 @@ function getTeams(teamsList) {
   let teams = JSON.parse(SCRIPT_PROP.getProperty('teams'));
   let object = {};
   
-  for(team of teamsList){
-    object[team] = teams[team]
+  if(teamsList === undefined){
+    object = teams;
+  }
+  else {
+    for(team of teamsList){
+      object[team] = teams[team]
+    }
   }
   
   return object;
+}
+
+function testTeams() {
+  Logger.log(getTeams())
 }

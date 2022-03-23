@@ -29,8 +29,16 @@ function setStrategiesScriptProperty(){
   SCRIPT_PROP.setProperty("strategies", JSON.stringify(stratObjs));
 }
 
-function getStrategies() {
+function getStrategies(strategiesList) {
   let strategies = JSON.parse(SCRIPT_PROP.getProperty('strategies'));
-  
+ 
+  if(strategiesList !== undefined){
+    let subset = {};
+    for(strategy of strategiesList){
+      subset[strategy] = strategies[strategy];
+    }
+    strategies = subset;
+  }
+
   return strategies;
 }

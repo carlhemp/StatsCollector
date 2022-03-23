@@ -8,12 +8,22 @@ function setQuestionRelsScriptProperty(){
   for(question of questionRelsList){
     let questionOb = {};
     questionOb.notCumulative=Boolean(question[2]);
-    questionOb.lessThan=question[0].split(',');
+    let lessThan = question[0];
+    if(lessThan.trim() == ''){
+      questionOb.lessThan = false;
+    }
+    else {
+      questionOb.lessThan=question[0].split(',');
+    }
 
     questionObjs[question[1]]=questionOb;
   }
 
   SCRIPT_PROP.setProperty("questionRelsList", JSON.stringify(questionObjs));
+}
+
+function myQuestiinRels() {
+  Logger.log(JSON.stringify(getQuestionRels()))
 }
 
 function getQuestionRels(){
