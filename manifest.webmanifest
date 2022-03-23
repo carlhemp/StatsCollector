@@ -1,6 +1,6 @@
 {
-  "name": "Stats Collector",
-  "short_name": "Stats Collector",
+  "name": "Spotlight[Beta]",
+  "short_name": "Spotlight",
   "icons": [
     {
       "src": "icon.png",
@@ -14,7 +14,7 @@
     }
   ],
   "theme_color": "#FFCF07",
-  "start_url": "/StatsCollector/index.html",
+  "start_url": "/Spotlight/",
   "background_color": "#FFCF07",
   "display": "standalone"
 }

@@ -1,2 +1,2 @@
-# StatsCollector
-Stats Collecting installable PWA for Android, iOS, and Desktop.
+# Spotlight[Beta]
+Installable PWA for Android, iOS, and Desktop.

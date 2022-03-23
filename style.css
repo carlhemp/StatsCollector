@@ -14,6 +14,11 @@ body {
 	overflow: hidden;
 	font-size: 16px;
 }
+object,
+img {
+	image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
 button,
 input { /* 1 */
   overflow: visible;
@@ -51,7 +56,6 @@ select {
   border: 2px solid var(--medium-gray);
   border-radius: 2px;
   font: inherit;
-  font-weight: bold;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -174,38 +178,37 @@ h1 {
 	padding: 0;
 }
 .cards {
-	position: relative;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 3rem;
 	margin-bottom: 2rem;
 	margin-top: 1rem;
 }
 .card {
-	width: min(40vw, 450px * 0.4);
-	height: max(30vh, 200px);
-	filter: drop-shadow(0 0.1rem 0.25rem var(--medium-gray));
+  flex-shrink: 0;
+	width: clamp(9.75rem, 42vw, 450px * 0.4);
+	height: 250px;
+	padding: 0 0.5rem;
+	filter: drop-shadow(.25rem .5rem 0.5rem var(--medium-gray));
 	background-color: white;
-	padding: .5rem;
 	text-align: center;
 	vertical-align: bottom;
+	border-radius:  1rem;
 }
-.card > img {
+.card > object { 
 	position: relative;
 	top: -1.5rem;
 }
 .card > p {
 	margin-top: 0;
 }
-.left {
-	position: absolute;
-	left:0;
-}
-.right {
-	position: absolute;
-	right:0;
-}
-.center {
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: calc(max(30vh, 200px) - 1rem);
+.card > h1 {
+	width: content; 
+	margin-left: auto; 
+	margin-right:auto; 
+	margin-bottom: 1rem;
 }
 .bottom-button {
   display: flex;
@@ -232,7 +235,7 @@ button {
 	background-color: var(--main-color);
 	border-color: var(--main-color);
 	display: inline-block;
-	font-weight: bold;
+	font-weight: 600;
 	text-align: center;
 	touch-action: manipulation;
 	border: 1px solid transparent;
@@ -248,6 +251,10 @@ button.white {
 	background-color: white;
 	color: black;
 }
+span[rel="tooltip"]:active,
+span[rel="tooltip"]:hover,
+.button:active,
+.button:hover,
 button:active,
 button:hover {
   background-image: linear-gradient(rgba(0, 0, 0, 0.2) 0 0);
@@ -376,6 +383,7 @@ input:checked + .round {
 }
 h2 {
 	color: var(--main-color);
+	font-weight: 600;
 }
 h4 {
 	color: var(--medium-gray);
@@ -441,8 +449,6 @@ select {
   bottom: 0;
   backdrop-filter: blur(3px);
   background-color: rgba(255, 255, 255, 0.1);
-  height: 100vh;
-  width: 100vw;
 }
 #strategyWelcomeText {
 	white-space: pre-wrap;
@@ -557,3 +563,45 @@ span[rel="tooltip"] {
   transition: none !important;
 }
 
+#staffAcct, #staffAcctMask {
+	letter-spacing: 0.3em;
+}
+
+.accountInfo input[type="checkbox"]:checked + label  {  
+	text-decoration: underline;
+}
+
+.staffToggle, .userToggle {
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  border-top-right-radius: 1rem;
+  margin-top: 0.5rem;
+  width: fit-content;
+}
+
+/* optional */
+.shell {
+  position: relative;
+  line-height: 1; }
+  .shell span {
+    position: absolute;
+    left: 12px;
+    top: 2px;
+    color: #ccc;
+    pointer-events: none;
+    z-index: -1; }
+    .shell span i {
+      font-style: normal;
+      /* any of these 3 will work */
+      color: transparent;
+      opacity: 0;
+      visibility: hidden; }
+
+input.masked,
+.shell span {
+  background-color: transparent;
+  text-transform: uppercase; }
+
+/*# sourceMappingURL=masking-input.css.map */
